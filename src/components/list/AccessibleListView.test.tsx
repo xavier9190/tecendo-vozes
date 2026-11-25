@@ -48,12 +48,13 @@ describe("AccessibleListView", () => {
     expect(items).toHaveLength(2);
 
     expect(within(items[0]).getByText("Saúde")).toBeInTheDocument();
-    expect(within(items[0]).getByText("Verificado")).toBeInTheDocument();
+    expect(within(items[0]).getByText("Local verificado")).toBeInTheDocument();
     expect(within(items[0]).getByText(/Atendimento integral/i)).toBeInTheDocument();
     expect(within(items[0]).getByText(/Rua Coronel Antônio Marinho, 145/i)).toBeInTheDocument();
 
     expect(within(items[1]).getByText("Arte e cultura")).toBeInTheDocument();
-    expect(within(items[1]).queryByText("Verificado")).not.toBeInTheDocument();
+    expect(within(items[1]).queryByText("Local verificado")).not.toBeInTheDocument();
+    expect(within(items[1]).getByText("Aguardando verificação")).toBeInTheDocument();
 
     const firstButton = within(items[0]).getByRole("button", {
       name: /ver detalhes de UBS Centro — Saúde da Mulher/i,

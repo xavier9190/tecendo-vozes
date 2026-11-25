@@ -277,7 +277,48 @@ describe("MapShell integration", () => {
     expect(trigger).toHaveFocus();
   });
 
-  it("shows MapOfflineFallback on map error and switches MapShell to list view when requested", async () => {
+  it("closes only ThreeDotsMenu on first Escape when opened over PlacePreview, keeping PlacePreview open until second Escape", async () => {
+    render(<MapShell places={SAMPLE_PLACES} />);
+    const map = mapInstances[0];
+    map.unclusteredFeatures = [
+      {
+        type: "Feature",
+        geometry: { type: "Point", coordinates: SAMPLE_PLACES[0].coordinates },
+        properties: { id: SAMPLE_PLACES[0].id },
+      },
+    ];
+    map.emit("load");
+
+    const marker = await screen.findByTestId("map-marker-ubs-centro");
+    marker.focus();
+    fireEvent.click(marker);
+
+    const preview = screen.getByRole("region", {
+      name: /pré-visualização de ubs centro/i,
+    });
+    expect(preview).toBeInTheDocument();
+
+    const trigger = screen.getByTestId("three-dots-trigger");
+    trigger.focus();
+    fireEvent.click(trigger);
+    expect(screen.getByRole("dialog", { name: /menu de informações e denúncia/i })).toBeInTheDocument();
+
+    // First Escape closes ONLY ThreeDotsMenu; PlacePreview remains open
+    fireEvent.keyDown(window, { key: "Escape" });
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(trigger).toHaveFocus();
+    expect(
+      screen.getByRole("region", { name: /pré-visualização de ubs centro/i }),
+    ).toBeInTheDocument();
+
+    // Second Escape closes PlacePreview
+    fireEvent.keyDown(window, { key: "Escape" });
+    expect(
+      screen.queryByRole("region", { name: /pré-visualização de ubs centro/i }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("shows MapOfflineFallback without duplicating EmergencyBar on map error and switches MapShell to list view when requested", async () => {
     render(<MapShell places={SAMPLE_PLACES} />);
     const map = mapInstances[0];
     map.emit("error", { error: new Error("Sem conexão") });
@@ -285,13 +326,14 @@ describe("MapShell integration", () => {
     const fallback = await screen.findByTestId("map-offline-fallback");
     expect(fallback).toBeInTheDocument();
     expect(fallback).toHaveTextContent("Sem conexão");
+    expect(screen.getAllByTestId("emergency-bar")).toHaveLength(1);
 
     const switchBtn = within(fallback).getByRole("button", { name: /visão em lista/i });
     fireEvent.click(switchBtn);
 
     expect(screen.getByRole("main")).toHaveAttribute("data-view-mode", "list");
     expect(screen.queryByTestId("map-offline-fallback")).not.toBeInTheDocument();
-    expect(screen.getByTestId("emergency-bar")).toBeInTheDocument();
+    expect(screen.getAllByTestId("emergency-bar")).toHaveLength(1);
   });
 
   it("honors a custom renderEmergencyMenuSlot when provided", () => {

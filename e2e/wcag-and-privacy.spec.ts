@@ -37,6 +37,105 @@ async function expectZeroClientStorageAndCookies(page: Page, stage: string) {
   expect(state.sessionStorageLen, `sessionStorage must stay empty (${stage})`).toBe(0);
 }
 
+interface Box {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+function boxesOverlap(a: Box, b: Box, tolerance = 1): boolean {
+  return !(
+    a.x + a.width <= b.x + tolerance ||
+    b.x + b.width <= a.x + tolerance ||
+    a.y + a.height <= b.y + tolerance ||
+    b.y + b.height <= a.y + tolerance
+  );
+}
+
+async function expectNonOverlapping(a: Locator, aLabel: string, b: Locator, bLabel: string) {
+  await expect(a, `Expected "${aLabel}" to be visible`).toBeVisible();
+  await expect(b, `Expected "${bLabel}" to be visible`).toBeVisible();
+  const boxA = await a.boundingBox();
+  const boxB = await b.boundingBox();
+  expect(boxA, `Expected "${aLabel}" to have a bounding box`).not.toBeNull();
+  expect(boxB, `Expected "${bLabel}" to have a bounding box`).not.toBeNull();
+  expect(
+    boxesOverlap(boxA!, boxB!),
+    `Expected "${aLabel}" (${JSON.stringify(boxA)}) not to overlap "${bLabel}" (${JSON.stringify(boxB)})`,
+  ).toBe(false);
+}
+
+async function expectContrastAtLeast(locator: Locator, label: string, minRatio = 4.5) {
+  await expect(locator, `Expected "${label}" to be visible`).toBeVisible();
+  const result = await locator.evaluate((el) => {
+    const parseRgba = (color: string): [number, number, number, number] => {
+      const match = color.match(/rgba?\(\s*([\d.]+)\s*[,\s]\s*([\d.]+)\s*[,\s]\s*([\d.]+)(?:\s*[,/]\s*([\d.]+))?\s*\)/i);
+      if (!match) {
+        return [0, 0, 0, 0];
+      }
+      return [
+        Number(match[1]),
+        Number(match[2]),
+        Number(match[3]),
+        match[4] !== undefined ? Number(match[4]) : 1,
+      ];
+    };
+
+    const compositeOver = (
+      fg: [number, number, number, number],
+      bg: [number, number, number],
+    ): [number, number, number] => {
+      const a = fg[3];
+      return [
+        fg[0] * a + bg[0] * (1 - a),
+        fg[1] * a + bg[1] * (1 - a),
+        fg[2] * a + bg[2] * (1 - a),
+      ];
+    };
+
+    const layers: Array<[number, number, number, number]> = [];
+    let current: HTMLElement | null = el as HTMLElement;
+    while (current) {
+      const bg = parseRgba(window.getComputedStyle(current).backgroundColor);
+      if (bg[3] > 0) {
+        layers.push(bg);
+        if (bg[3] >= 1) {
+          break;
+        }
+      }
+      current = current.parentElement;
+    }
+
+    let resolvedBg: [number, number, number] = [255, 255, 255];
+    for (let i = layers.length - 1; i >= 0; i -= 1) {
+      resolvedBg = compositeOver(layers[i], resolvedBg);
+    }
+
+    const rawFg = parseRgba(window.getComputedStyle(el).color);
+    const resolvedFg = compositeOver(rawFg, resolvedBg);
+
+    const relLuminance = ([r, g, b]: [number, number, number]): number => {
+      const [sr, sg, sb] = [r, g, b].map((v) => {
+        const c = v / 255;
+        return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+      });
+      return 0.2126 * sr + 0.7152 * sg + 0.0722 * sb;
+    };
+
+    const l1 = relLuminance(resolvedFg);
+    const l2 = relLuminance(resolvedBg);
+    const ratio = (Math.max(l1, l2) + 0.05) / (Math.min(l1, l2) + 0.05);
+
+    return { ratio, fg: resolvedFg, bg: resolvedBg };
+  });
+
+  expect(
+    result.ratio,
+    `Expected WCAG contrast >= ${minRatio}:1 for "${label}" (got ${result.ratio.toFixed(2)}:1, fg=${result.fg.map(Math.round).join(",")}, bg=${result.bg.map(Math.round).join(",")})`,
+  ).toBeGreaterThanOrEqual(minRatio);
+}
+
 test.describe("Tecendo Vozes — WCAG 2.1 AA, Keyboard Navigation & Zero-Tracking Privacy", () => {
   test("home landmarks, emergency tel: links, Pernambuco mini-map, and >=44px touch targets", async ({
     page,
@@ -145,7 +244,7 @@ test.describe("Tecendo Vozes — WCAG 2.1 AA, Keyboard Navigation & Zero-Trackin
       name: /pré-visualização de UBS Centro — Espaço Saúde da Mulher/i,
     });
     await expect(preview).toBeVisible();
-    await expect(preview.getByRole("link", { name: /como chegar/i })).toBeVisible();
+    await expect(preview.getByRole("link", { name: /como chegar/i })).toHaveCount(0);
 
     // Open PlaceDetailsModal via keyboard Enter
     const openDetailsBtn = preview.getByRole("button", { name: /ver detalhes/i });
@@ -215,6 +314,8 @@ test.describe("Tecendo Vozes — WCAG 2.1 AA, Keyboard Navigation & Zero-Trackin
 
     await page.goto("/");
     await expect(page.getByRole("main")).toHaveAttribute("data-map-error", "true");
+    await expect(page.getByTestId("map-offline-fallback")).toBeVisible();
+    await expect(page.getByTestId("emergency-bar")).toHaveCount(1);
     await expectZeroClientStorageAndCookies(page, "initial load");
 
     // Start recording strictly during client-side search, category filters & view toggle
@@ -309,5 +410,134 @@ test.describe("Tecendo Vozes — WCAG 2.1 AA, Keyboard Navigation & Zero-Trackin
     await expectTouchTargetAtLeast44Px(listTermsLink, "List footer /termos");
     await expect(listPrivacyLink).toHaveAttribute("href", "/privacidade");
     await expect(listTermsLink).toHaveAttribute("href", "/termos");
+  });
+
+  test("verifies computed WCAG 2.1 AA contrast (>= 4.5:1) across /, /privacidade, and /termos", async ({
+    page,
+  }) => {
+    await page.goto("/");
+
+    await expectContrastAtLeast(
+      page.getByRole("searchbox", { name: /buscar locais por nome/i }),
+      "Home search input",
+    );
+    await expectContrastAtLeast(
+      page.getByRole("button", { name: "Visão em Lista", exact: true }),
+      "Home list view toggle",
+    );
+    await expectContrastAtLeast(
+      page.getByTestId("emergency-bar").last().locator("p").first(),
+      "Home emergency disclaimer",
+    );
+
+    const categoryGroup = page.getByRole("group", { name: /filtrar por categoria/i });
+    const categoryButtons = categoryGroup.getByRole("button");
+    const count = await categoryButtons.count();
+    for (let i = 0; i < count; i += 1) {
+      await expectContrastAtLeast(categoryButtons.nth(i), `Category chip ${i + 1}`);
+    }
+
+    // Verify primary text and headings in List View
+    await page.getByRole("button", { name: "Visão em Lista", exact: true }).click();
+    const firstCard = page.getByRole("list", { name: /lista de locais/i }).getByRole("listitem").first();
+    await expectContrastAtLeast(firstCard.locator("h2"), "List View place heading");
+    await expectContrastAtLeast(firstCard.locator("p").first(), "List View place description");
+
+    // Verify /privacidade computed contrast
+    await page.goto("/privacidade");
+    await expectContrastAtLeast(
+      page.getByRole("main").getByRole("heading", { level: 1 }),
+      "/privacidade h1",
+    );
+    await expectContrastAtLeast(
+      page.getByRole("main").getByRole("heading", { level: 2 }).first(),
+      "/privacidade h2",
+    );
+    await expectContrastAtLeast(
+      page.getByRole("main").locator("section p").first(),
+      "/privacidade primary text",
+    );
+    await expectContrastAtLeast(
+      page.getByTestId("emergency-bar").locator("p").first(),
+      "/privacidade emergency disclaimer",
+    );
+
+    // Verify /termos computed contrast
+    await page.goto("/termos");
+    await expectContrastAtLeast(
+      page.getByRole("main").getByRole("heading", { level: 1 }),
+      "/termos h1",
+    );
+    await expectContrastAtLeast(
+      page.getByRole("main").getByRole("heading", { level: 2 }).first(),
+      "/termos h2",
+    );
+    await expectContrastAtLeast(
+      page.getByRole("main").locator("section p").first(),
+      "/termos primary text",
+    );
+    await expectContrastAtLeast(
+      page.getByTestId("emergency-bar").locator("p").first(),
+      "/termos emergency disclaimer",
+    );
+  });
+
+  test("enforces responsive non-overlap and layered Escape priority across desktop and mobile", async ({
+    page,
+  }, testInfo) => {
+    await page.goto("/");
+
+    const searchRegion = page.getByRole("search", { name: /busca e filtros de locais/i });
+    const recenterBtn = page.getByRole("button", { name: /voltar ao centro de belo jardim/i });
+    const geoBtn = page.getByRole("button", { name: /minha localização aproximada/i });
+    const miniMap = page.getByTestId("pernambuco-minimap");
+    const threeDotsTrigger = page.getByTestId("three-dots-trigger");
+
+    // SearchAndFilters must never overlap map action buttons on either mobile or desktop
+    await expectNonOverlapping(searchRegion, "SearchAndFilters", recenterBtn, "Recenter button");
+    await expectNonOverlapping(searchRegion, "SearchAndFilters", geoBtn, "Geolocation button");
+
+    // Select a place via List View then switch back to Map View with PlacePreview open
+    await page.getByRole("button", { name: "Visão em Lista", exact: true }).click();
+    await page
+      .getByRole("button", {
+        name: /ver detalhes de UBS Centro — Espaço Saúde da Mulher/i,
+      })
+      .click();
+
+    const preview = page.getByRole("region", {
+      name: /pré-visualização de UBS Centro — Espaço Saúde da Mulher/i,
+    });
+    await expect(preview).toBeVisible();
+
+    await page.getByRole("button", { name: /ver no mapa/i }).click();
+    await expect(page.getByRole("main")).toHaveAttribute("data-view-mode", "map");
+    await expect(preview).toBeVisible();
+
+    if (testInfo.project.name === "mobile") {
+      // Mobile (390x844): Bottom Sheet hides PernambucoMiniMap and ThreeDotsMenu trigger
+      await expect(miniMap).toBeHidden();
+      await expect(threeDotsTrigger).toBeHidden();
+      await expectNonOverlapping(searchRegion, "SearchAndFilters", preview, "Mobile PlacePreview");
+    } else {
+      // Desktop (1280x800): SearchAndFilters, PlacePreview (left side panel), and PernambucoMiniMap
+      // stay simultaneously visible with zero bounding-box overlap
+      await expectNonOverlapping(searchRegion, "SearchAndFilters", preview, "Desktop PlacePreview");
+      await expectNonOverlapping(preview, "Desktop PlacePreview", miniMap, "PernambucoMiniMap");
+      await expectNonOverlapping(searchRegion, "SearchAndFilters", miniMap, "PernambucoMiniMap");
+
+      // Layered Escape: opening ThreeDotsMenu over PlacePreview -> 1st Escape closes ONLY menu,
+      // keeping PlacePreview open until 2nd Escape
+      await threeDotsTrigger.click();
+      const menuDialog = page.getByRole("dialog", { name: /menu de informações e denúncia/i });
+      await expect(menuDialog).toBeVisible();
+
+      await page.keyboard.press("Escape");
+      await expect(menuDialog).toBeHidden();
+      await expect(preview).toBeVisible();
+
+      await page.keyboard.press("Escape");
+      await expect(preview).toBeHidden();
+    }
   });
 });

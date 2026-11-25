@@ -1,5 +1,8 @@
 import { z } from "zod";
+import { normalizeText } from "../text/normalize";
 import { CATEGORY_IDS } from "../theme/categories";
+
+export type LngLat = readonly [number, number];
 
 export const BELO_JARDIM_DISTRICTS = [
   "Sede",
@@ -10,12 +13,12 @@ export const BELO_JARDIM_DISTRICTS = [
 
 export type BeloJardimDistrict = (typeof BELO_JARDIM_DISTRICTS)[number];
 
-export const BELO_JARDIM_BOUNDS = [
+export const BELO_JARDIM_BOUNDS: readonly [LngLat, LngLat] = [
   [-36.62, -8.52],
   [-36.22, -8.15],
-] as const;
+];
 
-export function isWithinBeloJardimBounds(coordinates: readonly [number, number]): boolean {
+export function isWithinBeloJardimBounds(coordinates: LngLat): boolean {
   const [lng, lat] = coordinates;
   const [[west, south], [east, north]] = BELO_JARDIM_BOUNDS;
   return lng >= west && lng <= east && lat >= south && lat <= north;
@@ -34,16 +37,6 @@ const PROHIBITED_SHELTER_PATTERNS: readonly RegExp[] = [
   /\bendereco\s+sigiloso\b/,
 ];
 
-function normalizeForSafetyCheck(value: string): string {
-  return value
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .replace(/[-_]+/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
 export function findProhibitedShelterTerm(local: Local): string | null {
   const fieldsToInspect = [
     local.id,
@@ -56,7 +49,7 @@ export function findProhibitedShelterTerm(local: Local): string | null {
   ];
 
   for (const field of fieldsToInspect) {
-    const normalized = normalizeForSafetyCheck(field);
+    const normalized = normalizeText(field, { replaceHyphensAndUnderscores: true });
     for (const pattern of PROHIBITED_SHELTER_PATTERNS) {
       const match = normalized.match(pattern);
       if (match) {

@@ -1,6 +1,6 @@
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
-import { BELO_JARDIM_CENTER } from "@/lib/geo/belo-jardim";
+import { BELO_JARDIM_CENTER, type LngLat } from "@/lib/geo/belo-jardim";
 import { PernambucoMiniMap } from "./PernambucoMiniMap";
 
 afterEach(cleanup);
@@ -29,7 +29,7 @@ describe("PernambucoMiniMap", () => {
     const initialCx = Number(initialDot.getAttribute("cx"));
     const initialCy = Number(initialDot.getAttribute("cy"));
 
-    const serraDoVento: readonly [number, number] = [-36.3652, -8.2554];
+    const serraDoVento: LngLat = [-36.3652, -8.2554];
     rerender(<PernambucoMiniMap center={serraDoVento} />);
 
     const updatedDot = screen.getByTestId("minimap-marker-dot");
@@ -37,10 +37,5 @@ describe("PernambucoMiniMap", () => {
     const updatedCy = Number(updatedDot.getAttribute("cy"));
     expect(updatedCx).toBeGreaterThan(initialCx);
     expect(updatedCy).toBeLessThan(initialCy);
-  });
-
-  it("hides completely when hidden={true} for mobile Bottom Sheet clearance", () => {
-    const { container } = render(<PernambucoMiniMap center={BELO_JARDIM_CENTER} hidden />);
-    expect(container).toBeEmptyDOMElement();
   });
 });

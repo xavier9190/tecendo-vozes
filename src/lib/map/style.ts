@@ -15,9 +15,19 @@ export const PORTUGUESE_LABEL_EXPRESSION = [
   ["get", "name"],
 ] as unknown as string;
 
+export type MapStyleStage = "pmtiles" | "openfreemap" | "offline";
+
 export interface BuildMapStyleOptions {
   pmtilesUrl?: string;
-  mode?: "auto" | "offline";
+  mode?: "auto" | MapStyleStage;
+}
+
+export function getConfiguredPmtilesUrl(pmtilesUrl?: string): string {
+  return (pmtilesUrl ?? process.env.NEXT_PUBLIC_PMTILES_URL ?? "").trim();
+}
+
+export function resolveInitialMapStyleStage(pmtilesUrl?: string): "pmtiles" | "openfreemap" {
+  return getConfiguredPmtilesUrl(pmtilesUrl) ? "pmtiles" : "openfreemap";
 }
 
 function buildMaskAndBoundarySources(): Record<string, GeoJSONSourceSpecification> {
@@ -96,7 +106,7 @@ export function buildMapStyle(options?: BuildMapStyleOptions): StyleSpecificatio
   }
 
   const configuredPmtiles =
-    options?.pmtilesUrl ?? process.env.NEXT_PUBLIC_PMTILES_URL?.trim() ?? "";
+    options?.mode === "openfreemap" ? "" : getConfiguredPmtilesUrl(options?.pmtilesUrl);
 
   const vectorUrl = configuredPmtiles
     ? configuredPmtiles.startsWith("pmtiles://")

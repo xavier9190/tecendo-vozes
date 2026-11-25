@@ -1,11 +1,11 @@
 import { BadgeCheck, Clock } from "lucide-react";
-import type { Local } from "@/lib/data/schema";
+import type { LngLat, Local } from "@/lib/data/schema";
 import { getCategoryToken } from "@/lib/theme/categories";
 
 /**
  * Builds an external OpenStreetMap directions URL from `[lng, lat]` coordinates.
  */
-export function buildOsmDirectionsUrl(coordinates: readonly [number, number]): string {
+export function buildOsmDirectionsUrl(coordinates: LngLat): string {
   const [lng, lat] = coordinates;
   return `https://www.openstreetmap.org/directions?to=${encodeURIComponent(`${lat},${lng}`)}`;
 }

@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
 import type { Local } from "@/lib/data/schema";
+import { useFocusRestore } from "@/lib/hooks/useFocusRestore";
 import {
   PlaceBadges,
   buildInstagramUrl,
@@ -24,12 +25,18 @@ export interface PlaceDetailsModalProps {
   place: Local | null;
   isOpen: boolean;
   onClose: () => void;
+  handleEscape?: boolean;
 }
 
 /**
  * Accessible full-details dialog for a selected place.
  */
-export function PlaceDetailsModal({ place, isOpen, onClose }: PlaceDetailsModalProps) {
+export function PlaceDetailsModal({
+  place,
+  isOpen,
+  onClose,
+  handleEscape = true,
+}: PlaceDetailsModalProps) {
   const titleId = useId();
   const dialogRef = useRef<HTMLDivElement | null>(null);
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
@@ -45,18 +52,15 @@ export function PlaceDetailsModal({ place, isOpen, onClose }: PlaceDetailsModalP
     onCloseRef.current = onClose;
   }, [onClose]);
 
+  useFocusRestore(active, closeButtonRef);
+
   useEffect(() => {
     if (!active) {
       return;
     }
 
-    const previousFocus =
-      document.activeElement instanceof HTMLElement ? document.activeElement : null;
-
-    closeButtonRef.current?.focus({ preventScroll: true });
-
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
+      if (handleEscape && event.key === "Escape") {
         event.preventDefault();
         event.stopImmediatePropagation();
         event.stopPropagation();
@@ -87,11 +91,8 @@ export function PlaceDetailsModal({ place, isOpen, onClose }: PlaceDetailsModalP
 
     return () => {
       window.removeEventListener("keydown", handleKeyDown, true);
-      if (previousFocus && previousFocus.isConnected && previousFocus !== document.body) {
-        previousFocus.focus();
-      }
     };
-  }, [active]);
+  }, [active, handleEscape]);
 
   if (!isOpen || !place) {
     return null;

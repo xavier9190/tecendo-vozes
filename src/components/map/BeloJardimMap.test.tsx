@@ -58,6 +58,7 @@ const { mapInstances, markerInstances, MockMap, MockMarker } = vi.hoisted(() => 
     layerListeners = new Map<string, Map<string, Set<MapEventHandler>>>();
     sources = new Map<string, Record<string, unknown>>();
     layers = new Map<string, Record<string, unknown>>();
+    currentStyle: Record<string, unknown> | undefined;
     easeToCalls: Array<Record<string, unknown>> = [];
     setStyleCalls: unknown[] = [];
     unclusteredFeatures: Array<Record<string, unknown>> = [];
@@ -67,6 +68,7 @@ const { mapInstances, markerInstances, MockMap, MockMarker } = vi.hoisted(() => 
     constructor(options: Record<string, unknown>) {
       this.options = options;
       this.container = options.container as HTMLElement;
+      this.currentStyle = options.style as Record<string, unknown> | undefined;
       instances.push(this);
     }
 
@@ -136,7 +138,12 @@ const { mapInstances, markerInstances, MockMap, MockMarker } = vi.hoisted(() => 
       return this.layers.get(id);
     }
 
+    getStyle() {
+      return this.currentStyle;
+    }
+
     setStyle(style: unknown) {
+      this.currentStyle = style as Record<string, unknown> | undefined;
       this.setStyleCalls.push(style);
       this.sources.clear();
       this.layers.clear();
@@ -379,19 +386,111 @@ describe("BeloJardimMap", () => {
     expect(sessionStorage.length).toBe(0);
   });
 
-  it("falls back cleanly to offline style and notifies onMapError when tile loading fails", async () => {
-    const onMapError = vi.fn();
-    render(
-      <BeloJardimMap places={SAMPLE_PLACES} onSelectPlace={vi.fn()} onMapError={onMapError} />,
+  it("falls back cleanly to offline style without adding glyph-dependent cluster count layer and notifies onMapError when OpenFreeMap tile loading fails", async () => {
+    const prev = process.env.NEXT_PUBLIC_PMTILES_URL;
+    delete process.env.NEXT_PUBLIC_PMTILES_URL;
+
+    try {
+      const onMapError = vi.fn();
+      render(
+        <BeloJardimMap places={SAMPLE_PLACES} onSelectPlace={vi.fn()} onMapError={onMapError} />,
+      );
+      const map = mapInstances[0];
+      map.emit("load");
+      expect(map.getLayer("locais-cluster-count")).toBeDefined();
+
+      map.emit("error", { error: new Error("Network failure") });
+
+      expect(map.setStyleCalls).toHaveLength(1);
+      expect(onMapError).toHaveBeenCalledTimes(1);
+      expect(map.getLayer("locais-clusters")).toBeDefined();
+      expect(map.getLayer("locais-unclustered-point")).toBeDefined();
+      expect(map.getLayer("locais-cluster-count")).toBeUndefined();
+      await waitFor(() => {
+        expect(screen.getByRole("status")).toHaveTextContent(/modo offline|sem conexão/i);
+      });
+    } finally {
+      if (prev !== undefined) {
+        process.env.NEXT_PUBLIC_PMTILES_URL = prev;
+      }
+    }
+  });
+
+  it("performs 3-stage PMTiles -> OpenFreeMap -> Offline fallback before notifying onMapError", async () => {
+    const prev = process.env.NEXT_PUBLIC_PMTILES_URL;
+    process.env.NEXT_PUBLIC_PMTILES_URL = "https://cdn.example.org/belo-jardim.pmtiles";
+
+    try {
+      const onMapError = vi.fn();
+      render(
+        <BeloJardimMap places={SAMPLE_PLACES} onSelectPlace={vi.fn()} onMapError={onMapError} />,
+      );
+      const map = mapInstances[0];
+      const initialStyle = map.options.style as { sources: { openmaptiles?: { url?: string } } };
+      expect(initialStyle.sources.openmaptiles?.url).toBe(
+        "pmtiles://https://cdn.example.org/belo-jardim.pmtiles",
+      );
+
+      map.emit("load");
+
+      // Stage 1 -> Stage 2: PMTiles fails -> falls back to OpenFreeMap without triggering onMapError
+      map.emit("error", { error: new Error("PMTiles unavailable") });
+      expect(map.setStyleCalls).toHaveLength(1);
+      const fallbackStyle = map.setStyleCalls[0] as {
+        sources: { openmaptiles?: { url?: string } };
+      };
+      expect(fallbackStyle.sources.openmaptiles?.url).toBe("https://tiles.openfreemap.org/planet");
+      expect(onMapError).not.toHaveBeenCalled();
+      expect(map.getLayer("locais-cluster-count")).toBeDefined();
+
+      // Stage 2 -> Stage 3: OpenFreeMap also fails -> falls back to offline style and calls onMapError
+      map.emit("error", { error: new Error("OpenFreeMap unavailable") });
+      expect(map.setStyleCalls).toHaveLength(2);
+      const offlineStyle = map.setStyleCalls[1] as { sources: Record<string, unknown> };
+      expect(offlineStyle.sources).not.toHaveProperty("openmaptiles");
+      expect(onMapError).toHaveBeenCalledTimes(1);
+      expect(map.getLayer("locais-cluster-count")).toBeUndefined();
+      expect(map.getLayer("locais-clusters")).toBeDefined();
+    } finally {
+      if (prev !== undefined) {
+        process.env.NEXT_PUBLIC_PMTILES_URL = prev;
+      } else {
+        delete process.env.NEXT_PUBLIC_PMTILES_URL;
+      }
+    }
+  });
+
+  it("reconciles unclustered markers when sourcedata and idle fire asynchronously after source.setData", async () => {
+    const { rerender } = render(
+      <BeloJardimMap places={SAMPLE_PLACES} onSelectPlace={vi.fn()} />,
     );
     const map = mapInstances[0];
+    map.unclusteredFeatures = [
+      {
+        type: "Feature",
+        geometry: { type: "Point", coordinates: SAMPLE_PLACES[0].coordinates },
+        properties: { id: SAMPLE_PLACES[0].id },
+      },
+    ];
     map.emit("load");
-    map.emit("error", { error: new Error("Network failure") });
+    expect(await screen.findByTestId("map-marker-ubs-centro")).toBeInTheDocument();
 
-    expect(map.setStyleCalls).toHaveLength(1);
-    expect(onMapError).toHaveBeenCalledTimes(1);
-    await waitFor(() => {
-      expect(screen.getByRole("status")).toHaveTextContent(/modo offline|sem conexão/i);
-    });
+    // Simulate async tile update: queryRenderedFeatures is initially empty right after setData,
+    // then becomes populated when MapLibre finishes tiling and emits sourcedata / idle.
+    map.unclusteredFeatures = [];
+    rerender(<BeloJardimMap places={[SAMPLE_PLACES[1]]} onSelectPlace={vi.fn()} />);
+    expect(screen.queryByTestId("map-marker-casa-artesas")).not.toBeInTheDocument();
+
+    map.unclusteredFeatures = [
+      {
+        type: "Feature",
+        geometry: { type: "Point", coordinates: SAMPLE_PLACES[1].coordinates },
+        properties: { id: SAMPLE_PLACES[1].id },
+      },
+    ];
+    map.emit("idle");
+
+    expect(await screen.findByTestId("map-marker-casa-artesas")).toBeInTheDocument();
+    expect(screen.queryByTestId("map-marker-ubs-centro")).not.toBeInTheDocument();
   });
 });
