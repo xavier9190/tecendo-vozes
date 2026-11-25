@@ -178,12 +178,14 @@ export function ThreeDotsMenu({
                 <nav aria-label="Documentos legais" className="flex flex-col gap-2">
                   <Link
                     href="/privacidade"
+                    prefetch={false}
                     className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-xl border-2 border-tv-purple-deep bg-tv-purple-deep px-4 py-2.5 text-sm font-bold text-tv-cream-mint transition-colors hover:bg-tv-purple-dark"
                   >
                     Política de Privacidade
                   </Link>
                   <Link
                     href="/termos"
+                    prefetch={false}
                     className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-xl border-2 border-tv-purple-deep bg-tv-cream-warm px-4 py-2.5 text-sm font-bold text-tv-purple-deep transition-colors hover:bg-tv-cream-butter"
                   >
                     Termos de Uso

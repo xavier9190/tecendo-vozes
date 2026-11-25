@@ -1,6 +1,8 @@
 "use client";
 
 import { BadgeCheck, ChevronRight, MapPin } from "lucide-react";
+import Link from "next/link";
+import { PROJECT_INFO } from "@/components/emergency/EmergencyConstants";
 import type { Local } from "@/lib/data/schema";
 import { getCategoryToken } from "@/lib/theme/categories";
 
@@ -18,11 +20,9 @@ export function AccessibleListView({
   onClearFilters,
 }: AccessibleListViewProps) {
   return (
-    <section
-      aria-label="Visão em Lista de locais"
-      className="min-h-0 flex-1 overflow-y-auto px-3 pt-3 pb-24 md:px-6 md:pb-16"
-    >
-      {places.length === 0 ? (
+    <div className="min-h-0 flex-1 overflow-y-auto px-3 pt-3 pb-56 md:px-6 md:pb-36">
+      <section aria-label="Visão em Lista de locais">
+        {places.length === 0 ? (
         <div
           role="status"
           className="mx-auto mt-6 flex max-w-lg flex-col items-center gap-4 rounded-2xl border-2 border-tv-purple-dark bg-tv-cream-mint p-6 text-center shadow-sm"
@@ -127,6 +127,30 @@ export function AccessibleListView({
           })}
         </ul>
       )}
-    </section>
+      </section>
+
+      <footer className="mx-auto mt-8 flex max-w-5xl flex-col gap-3 rounded-2xl border-2 border-tv-lavender bg-tv-cream-mint p-4 text-tv-purple-deep shadow-xs sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-xs font-semibold text-tv-purple-dark">
+          {PROJECT_INFO.name} — Privacidade zero-rastreamento · Responsável LGPD:{" "}
+          {PROJECT_INFO.lgpdContactName}
+        </p>
+        <nav aria-label="Links legais" className="flex flex-wrap items-center gap-2">
+          <Link
+            href="/privacidade"
+            prefetch={false}
+            className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-xl border-2 border-tv-purple-deep bg-tv-purple-deep px-4 py-2 text-xs font-bold text-tv-cream-mint transition-colors hover:bg-tv-purple-dark sm:text-sm"
+          >
+            Política de Privacidade
+          </Link>
+          <Link
+            href="/termos"
+            prefetch={false}
+            className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-xl border-2 border-tv-purple-deep bg-tv-cream-warm px-4 py-2 text-xs font-bold text-tv-purple-deep transition-colors hover:bg-tv-cream-butter sm:text-sm"
+          >
+            Termos de Uso
+          </Link>
+        </nav>
+      </footer>
+    </div>
   );
 }
