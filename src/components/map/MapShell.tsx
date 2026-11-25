@@ -9,6 +9,7 @@ import {
   BELO_JARDIM_CENTER,
   DEFAULT_ZOOM,
 } from "@/lib/geo/belo-jardim";
+import { PlaceInspectionSlot } from "@/components/place/PlaceInspectionSlot";
 import { filterPlaces } from "@/lib/search/filter-places";
 import type { CategoryId } from "@/lib/theme/categories";
 import { BeloJardimMap, type MapViewport } from "./BeloJardimMap";
@@ -182,7 +183,14 @@ export function MapShell({
       {renderSearchAndListSlot ? renderSearchAndListSlot(slotContext) : defaultSearchAndList}
 
       {/* Slot #5: Responsive Place Preview (Mobile Bottom Sheet ~1/3 / Desktop Left Side Panel ~1/4) & Full Details */}
-      {renderPlaceDetailsSlot?.(slotContext) ?? null}
+      {renderPlaceDetailsSlot ? (
+        renderPlaceDetailsSlot(slotContext)
+      ) : selectedPlace ? (
+        <PlaceInspectionSlot
+          place={selectedPlace}
+          onClose={() => setSelectedPlace(null)}
+        />
+      ) : null}
 
       {/* Bottom-left Pernambuco Mini-Map (hidden on mobile while Bottom Sheet / menu is open, or in List View) */}
       <div

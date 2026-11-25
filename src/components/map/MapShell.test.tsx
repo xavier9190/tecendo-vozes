@@ -201,6 +201,57 @@ describe("MapShell integration", () => {
     expect(screen.queryByTestId("selected-place")).not.toBeInTheDocument();
   });
 
+  it("renders default PlacePreview and PlaceDetailsModal on marker selection and closes modal before preview on Escape", async () => {
+    render(<MapShell places={SAMPLE_PLACES} />);
+
+    const map = mapInstances[0];
+    map.unclusteredFeatures = [
+      {
+        type: "Feature",
+        geometry: { type: "Point", coordinates: SAMPLE_PLACES[0].coordinates },
+        properties: { id: SAMPLE_PLACES[0].id },
+      },
+    ];
+    map.emit("load");
+
+    const marker = await screen.findByTestId("map-marker-ubs-centro");
+    marker.focus();
+    fireEvent.click(marker);
+
+    // Default PlacePreview opens
+    expect(
+      screen.getByRole("region", {
+        name: /pré-visualização de ubs centro/i,
+      }),
+    ).toBeInTheDocument();
+
+    // Open PlaceDetailsModal via "Ver detalhes"
+    const detailsBtn = screen.getByRole("button", { name: /ver detalhes/i });
+    detailsBtn.focus();
+    fireEvent.click(detailsBtn);
+
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+
+    // First Escape closes only PlaceDetailsModal, keeping PlacePreview open and restoring focus to "Ver detalhes"
+    fireEvent.keyDown(window, { key: "Escape" });
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("region", {
+        name: /pré-visualização de ubs centro/i,
+      }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /ver detalhes/i })).toHaveFocus();
+
+    // Second Escape closes PlacePreview and restores focus to marker
+    fireEvent.keyDown(window, { key: "Escape" });
+    expect(
+      screen.queryByRole("region", {
+        name: /pré-visualização de ubs centro/i,
+      }),
+    ).not.toBeInTheDocument();
+    expect(screen.getByTestId("map-marker-ubs-centro")).toHaveFocus();
+  });
+
   it("renders default #7 ThreeDotsMenu and EmergencyBar, blurring map when menu opens and closing on Escape", () => {
     render(<MapShell places={SAMPLE_PLACES} />);
 
