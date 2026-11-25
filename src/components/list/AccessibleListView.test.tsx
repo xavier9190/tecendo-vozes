@@ -92,4 +92,28 @@ describe("AccessibleListView", () => {
     await user.click(clearButton);
     expect(onClearFilters).toHaveBeenCalledTimes(1);
   });
+
+  it("renders accessible footer links to /privacidade and /termos with >= 44px touch targets", () => {
+    render(
+      <AccessibleListView
+        places={SAMPLE_PLACES}
+        selectedPlaceId={null}
+        onSelectPlace={vi.fn()}
+        onClearFilters={vi.fn()}
+      />,
+    );
+
+    const footer = screen.getByRole("contentinfo");
+    const privacyLink = within(footer).getByRole("link", {
+      name: /política de privacidade/i,
+    });
+    expect(privacyLink).toHaveAttribute("href", "/privacidade");
+    expect(privacyLink.className).toContain("min-h-11");
+    expect(privacyLink.className).toContain("min-w-11");
+
+    const termsLink = within(footer).getByRole("link", { name: /termos de uso/i });
+    expect(termsLink).toHaveAttribute("href", "/termos");
+    expect(termsLink.className).toContain("min-h-11");
+    expect(termsLink.className).toContain("min-w-11");
+  });
 });
