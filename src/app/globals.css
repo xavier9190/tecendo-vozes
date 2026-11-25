@@ -1,0 +1,103 @@
+@import "tailwindcss";
+
+:root {
+  /* Official 12-color Tecendo Vozes palette */
+  --tv-purple-deep: #3e1b45;
+  --tv-purple-dark: #5a3263;
+  --tv-purple-mid: #79549e;
+
+  --tv-coral: #ea4f29;
+  --tv-orange: #e86735;
+  --tv-amber: #e89041;
+
+  --tv-cream-mint: #f7fff5;
+  --tv-cream-warm: #f9f6e7;
+  --tv-cream-butter: #f9f4bc;
+
+  --tv-purple-soft: #8c589d;
+  --tv-lavender: #ab8bb8;
+  --tv-lavender-light: #c3b4d0;
+
+  /* Semantic WCAG 2.1 AA tokens */
+  --tv-bg: var(--tv-cream-warm);
+  --tv-surface: var(--tv-cream-mint);
+  --tv-text: var(--tv-purple-deep);
+  --tv-text-secondary: var(--tv-purple-dark);
+  --tv-focus-ring: var(--tv-coral);
+}
+
+@theme inline {
+  --color-tv-purple-deep: var(--tv-purple-deep);
+  --color-tv-purple-dark: var(--tv-purple-dark);
+  --color-tv-purple-mid: var(--tv-purple-mid);
+  --color-tv-coral: var(--tv-coral);
+  --color-tv-orange: var(--tv-orange);
+  --color-tv-amber: var(--tv-amber);
+  --color-tv-cream-mint: var(--tv-cream-mint);
+  --color-tv-cream-warm: var(--tv-cream-warm);
+  --color-tv-cream-butter: var(--tv-cream-butter);
+  --color-tv-purple-soft: var(--tv-purple-soft);
+  --color-tv-lavender: var(--tv-lavender);
+  --color-tv-lavender-light: var(--tv-lavender-light);
+}
+
+html {
+  font-size: 100%;
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--tv-bg);
+  color: var(--tv-text);
+  font-family:
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    Roboto,
+    "Helvetica Neue",
+    Arial,
+    sans-serif;
+  font-size: 1rem;
+  line-height: 1.5;
+  min-height: 100dvh;
+  -webkit-font-smoothing: antialiased;
+}
+
+:focus-visible {
+  outline: 0.1875rem solid var(--tv-focus-ring);
+  outline-offset: 0.125rem;
+}
+
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0.75rem;
+  z-index: 100;
+  padding: 0.75rem 1rem;
+  min-height: 2.75rem;
+  border-radius: 0.5rem;
+  background-color: var(--tv-purple-deep);
+  color: var(--tv-cream-mint);
+  font-size: 1rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.skip-link:focus {
+  left: 0.75rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
