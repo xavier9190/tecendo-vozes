@@ -235,7 +235,7 @@ describe("MapShell integration", () => {
     expect(fallback).toBeInTheDocument();
     expect(fallback).toHaveTextContent("Sem conexão");
 
-    const switchBtn = screen.getByRole("button", { name: /visão em lista/i });
+    const switchBtn = within(fallback).getByRole("button", { name: /visão em lista/i });
     fireEvent.click(switchBtn);
 
     expect(screen.getByRole("main")).toHaveAttribute("data-view-mode", "list");
