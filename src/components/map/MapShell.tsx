@@ -9,6 +9,9 @@ import {
 } from "@/lib/geo/belo-jardim";
 import { BeloJardimMap, type MapViewport } from "./BeloJardimMap";
 import { PernambucoMiniMap } from "./PernambucoMiniMap";
+import { EmergencyBar } from "@/components/emergency/EmergencyBar";
+import { MapOfflineFallback } from "@/components/emergency/MapOfflineFallback";
+import { ThreeDotsMenu } from "@/components/emergency/ThreeDotsMenu";
 
 export interface MapShellSlotContext {
   places: readonly Local[];
@@ -124,7 +127,27 @@ export function MapShell({
       </div>
 
       {/* Slot #7: Bottom-right Three Dots Menu (with backdrop blur) & Permanent Emergency Layer */}
-      {renderEmergencyMenuSlot?.(slotContext) ?? null}
+      {renderEmergencyMenuSlot ? (
+        renderEmergencyMenuSlot(slotContext)
+      ) : (
+        <>
+          {mapError && viewMode === "map" ? (
+            <MapOfflineFallback
+              errorMessage={mapError}
+              onSwitchToList={() => setViewMode("list")}
+            />
+          ) : null}
+          <EmergencyBar
+            variant="floating"
+            isPlaceSelected={Boolean(selectedPlace)}
+          />
+          <ThreeDotsMenu
+            isOpen={isMenuOpen}
+            onOpenChange={setIsMenuOpen}
+            hideTriggerOnMobile={Boolean(selectedPlace)}
+          />
+        </>
+      )}
     </main>
   );
 }
