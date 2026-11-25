@@ -1,0 +1,230 @@
+[
+  {
+    "id": "ubs-centro-saude-mulher",
+    "nome": "UBS Centro — Espaço Saúde da Mulher",
+    "categoria": "saude",
+    "descricaoCurta": "Pré-natal, exames preventivos, planejamento reprodutivo e acompanhamento ginecológico.",
+    "descricaoCompleta": "Unidade Básica de Saúde de referência na Sede de Belo Jardim com equipe multiprofissional dedicada à saúde integral da mulher, incluindo atendimento de enfermagem, pré-natal de baixo risco, coleta de citologia e grupos educativos.",
+    "distrito": "Sede",
+    "endereco": "Rua Coronel Antônio Marinho, 145, Centro, Belo Jardim - PE",
+    "coordinates": [-36.424, -8.3358],
+    "horarioFuncionamento": "Segunda a sexta, 07h30 às 16h30",
+    "telefone": "(81) 3726-1040",
+    "whatsapp": "5581991001040",
+    "tags": ["saude-da-mulher", "pre-natal", "sus", "preventivo"],
+    "verificado": true,
+    "dataVerificacao": "2026-10-18",
+    "midia": {
+      "fotos": [
+        {
+          "url": "data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 640 360'%3E%3Crect width='640' height='360' fill='%23f9f6e7'/%3E%3Crect x='24' y='24' width='592' height='312' rx='16' fill='%23ea4f29' fill-opacity='0.14' stroke='%23ea4f29' stroke-width='4'/%3E%3Ctext x='320' y='175' text-anchor='middle' font-family='sans-serif' font-size='26' font-weight='bold' fill='%233e1b45'%3EUBS Centro — Saúde da Mulher%3C/text%3E%3Ctext x='320' y='215' text-anchor='middle' font-family='sans-serif' font-size='18' fill='%235a3263'%3ESede · Belo Jardim - PE%3C/text%3E%3C/svg%3E",
+          "alt": "Fachada ilustrada da UBS Centro — Espaço Saúde da Mulher em Belo Jardim"
+        }
+      ],
+      "youtubeVideoId": "M7lc1UVf-VE"
+    }
+  },
+  {
+    "id": "policlinica-maria-alice-sede",
+    "nome": "Policlínica Municipal da Mulher",
+    "categoria": "saude",
+    "descricaoCurta": "Consultas especializadas em ginecologia, obstetrícia e mastologia mediante encaminhamento.",
+    "descricaoCompleta": "Serviço ambulatorial especializado voltado para consultas de ginecologia, acompanhamento de gestantes e exames de apoio diagnóstico na região central.",
+    "distrito": "Sede",
+    "endereco": "Av. Deputado José Mendonça Bezerra, 410, Santo Antônio, Belo Jardim - PE",
+    "coordinates": [-36.4182, -8.3392],
+    "horarioFuncionamento": "Segunda a sexta, 08h às 17h",
+    "telefone": "(81) 3726-1188",
+    "tags": ["ginecologia", "especialidades", "sus"],
+    "verificado": true,
+    "dataVerificacao": "2026-10-20"
+  },
+  {
+    "id": "cram-tecendo-cuidado",
+    "nome": "Centro de Referência de Atendimento à Mulher (CRAM)",
+    "categoria": "protecao-apoio",
+    "descricaoCurta": "Acolhimento psicossocial, escuta qualificada e orientação jurídica gratuita para mulheres.",
+    "descricaoCompleta": "Espaço dedicado ao atendimento humanizado e sigiloso de mulheres em situação de violência, oferecendo acompanhamento psicológico, assistência social e encaminhamento para a rede de garantia de direitos.",
+    "distrito": "Sede",
+    "endereco": "Rua Pedro Firmino, 88, Boa Vista, Belo Jardim - PE",
+    "coordinates": [-36.4292, -8.3298],
+    "horarioFuncionamento": "Segunda a sexta, 08h às 17h",
+    "telefone": "(81) 3726-2290",
+    "whatsapp": "5581992202290",
+    "tags": ["atendimento-psicossocial", "orientacao-juridica", "direitos-das-mulheres"],
+    "verificado": true,
+    "dataVerificacao": "2026-11-02",
+    "midia": {
+      "fotos": [
+        {
+          "url": "data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 640 360'%3E%3Crect width='640' height='360' fill='%23f7fff5'/%3E%3Crect x='24' y='24' width='592' height='312' rx='16' fill='%233e1b45' fill-opacity='0.12' stroke='%233e1b45' stroke-width='4'/%3E%3Ctext x='320' y='175' text-anchor='middle' font-family='sans-serif' font-size='26' font-weight='bold' fill='%233e1b45'%3ECRAM — Atendimento à Mulher%3C/text%3E%3Ctext x='320' y='215' text-anchor='middle' font-family='sans-serif' font-size='18' fill='%235a3263'%3EAtendimento psicossocial e jurídico%3C/text%3E%3C/svg%3E",
+          "alt": "Sala de escuta humanizada do Centro de Referência de Atendimento à Mulher"
+        }
+      ],
+      "youtubeVideoId": "aqz-KE-bpKQ"
+    }
+  },
+  {
+    "id": "nucleo-orientacao-juridica-cohab",
+    "nome": "Núcleo Comunitário de Orientação Jurídica — Cohab",
+    "categoria": "protecao-apoio",
+    "descricaoCurta": "Plantão de orientação sobre pensão alimentícia, guarda e medidas protetivas.",
+    "distrito": "Sede",
+    "endereco": "Rua Projetada 12, 54, Cohab I, Belo Jardim - PE",
+    "coordinates": [-36.4335, -8.3412],
+    "telefone": "(81) 3726-3410",
+    "tags": ["orientacao-juridica", "direito-de-familia"],
+    "verificado": true,
+    "dataVerificacao": "2026-10-12"
+  },
+  {
+    "id": "cras-serra-do-vento",
+    "nome": "CRAS Serra do Vento",
+    "categoria": "apoio-publico",
+    "descricaoCurta": "Cadastro Único, benefícios sociais e oficinas comunitárias para famílias do distrito.",
+    "descricaoCompleta": "Centro de Referência de Assistência Social que atende moradoras da Serra do Vento e sítios vizinhos com atualização do CadÚnico, atendimento social e grupos de convivência.",
+    "distrito": "Serra do Vento",
+    "endereco": "Praça Principal de Serra do Vento, s/n, Serra do Vento, Belo Jardim - PE",
+    "coordinates": [-36.3652, -8.2554],
+    "horarioFuncionamento": "Segunda a sexta, 08h às 14h",
+    "telefone": "(81) 3726-4110",
+    "tags": ["cadunico", "assistencia-social", "zona-rural"],
+    "verificado": true,
+    "dataVerificacao": "2026-10-25"
+  },
+  {
+    "id": "creas-regional-belo-jardim",
+    "nome": "CREAS Belo Jardim",
+    "categoria": "apoio-publico",
+    "descricaoCurta": "Acompanhamento especializado para famílias e mulheres com direitos violados.",
+    "descricaoCompleta": "Serviço público de proteção social especial de média complexidade, atuando de forma integrada com conselhos e rede socioassistencial do município.",
+    "distrito": "Sede",
+    "endereco": "Rua São João, 210, São Pedro, Belo Jardim - PE",
+    "coordinates": [-36.4215, -8.3342],
+    "horarioFuncionamento": "Segunda a sexta, 08h às 17h",
+    "telefone": "(81) 3726-4250",
+    "tags": ["creas", "assistencia-social", "direitos"],
+    "verificado": true,
+    "dataVerificacao": "2026-11-01",
+    "midia": {
+      "fotos": [
+        {
+          "url": "data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 640 360'%3E%3Crect width='640' height='360' fill='%23f7fff5'/%3E%3Crect x='24' y='24' width='592' height='312' rx='16' fill='%235a3263' fill-opacity='0.14' stroke='%235a3263' stroke-width='4'/%3E%3Ctext x='320' y='175' text-anchor='middle' font-family='sans-serif' font-size='26' font-weight='bold' fill='%233e1b45'%3ECREAS Belo Jardim%3C/text%3E%3Ctext x='320' y='215' text-anchor='middle' font-family='sans-serif' font-size='18' fill='%235a3263'%3EApoio público especializado%3C/text%3E%3C/svg%3E",
+          "alt": "Ilustração representativa da sede do CREAS Belo Jardim"
+        }
+      ]
+    }
+  },
+  {
+    "id": "casa-das-artesas-agua-fria",
+    "nome": "Casa das Artesãs de Água Fria",
+    "categoria": "artesanato",
+    "descricaoCurta": "Associação de mulheres produtoras de bordado manual, palha e cerâmica utilitária.",
+    "descricaoCompleta": "Coletivo formado por artesãs do distrito de Água Fria que organiza feiras locais, oficinas de transmissão de saberes e comercialização solidária de peças autorais.",
+    "distrito": "Água Fria",
+    "endereco": "Rua da Matriz, 32, Distrito de Água Fria, Belo Jardim - PE",
+    "coordinates": [-36.3554, -8.3852],
+    "horarioFuncionamento": "Terça a sábado, 09h às 17h",
+    "whatsapp": "5581993104422",
+    "instagram": "@artesasaguafria",
+    "tags": ["bordado", "ceramica", "economia-solidaria"],
+    "verificado": true,
+    "dataVerificacao": "2026-10-30",
+    "midia": {
+      "fotos": [
+        {
+          "url": "data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 640 360'%3E%3Crect width='640' height='360' fill='%23f9f6e7'/%3E%3Crect x='24' y='24' width='592' height='312' rx='16' fill='%23e86735' fill-opacity='0.18' stroke='%23e86735' stroke-width='4'/%3E%3Ctext x='320' y='175' text-anchor='middle' font-family='sans-serif' font-size='26' font-weight='bold' fill='%233e1b45'%3ECasa das Artesãs de Água Fria%3C/text%3E%3Ctext x='320' y='215' text-anchor='middle' font-family='sans-serif' font-size='18' fill='%235a3263'%3EBordado, palha e cerâmica%3C/text%3E%3C/svg%3E",
+          "alt": "Mostruário ilustrado de bordado e cerâmica da Casa das Artesãs de Água Fria"
+        }
+      ],
+      "youtubeVideoId": "ScMzIvxBSi4"
+    }
+  },
+  {
+    "id": "atelier-renda-xucuru",
+    "nome": "Ateliê Fios de Xucuru",
+    "categoria": "artesanato",
+    "descricaoCurta": "Produção comunitária de crochê, fuxico e peças têxteis feitas por moradoras do Xucuru.",
+    "distrito": "Xucuru",
+    "endereco": "Sítio Lage Grande, Distrito de Xucuru, Belo Jardim - PE",
+    "coordinates": [-36.4951, -8.3154],
+    "whatsapp": "5581994158890",
+    "tags": ["croche", "fuxico", "artesanato-rural"],
+    "verificado": true,
+    "dataVerificacao": "2026-10-22"
+  },
+  {
+    "id": "coletivo-cultural-serra-encantada",
+    "nome": "Coletivo Cultural Mulheres da Serra",
+    "categoria": "arte-cultura",
+    "descricaoCurta": "Rodas de coco, literatura de cordel e ensaios abertos liderados por artistas locais.",
+    "descricaoCompleta": "Iniciativa cultural da Serra do Vento que promove apresentações de cultura popular pernambucana, oficinas de percussão para jovens e saraus comunitários.",
+    "distrito": "Serra do Vento",
+    "endereco": "Rua Alto da Igreja, 18, Serra do Vento, Belo Jardim - PE",
+    "coordinates": [-36.3698, -8.2591],
+    "horarioFuncionamento": "Quintas e sábados, 15h às 19h",
+    "instagram": "@mulheresdaserra.bj",
+    "tags": ["cultura-popular", "cordel", "musica"],
+    "verificado": true,
+    "dataVerificacao": "2026-11-04",
+    "midia": {
+      "fotos": [
+        {
+          "url": "data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 640 360'%3E%3Crect width='640' height='360' fill='%23f7fff5'/%3E%3Crect x='24' y='24' width='592' height='312' rx='16' fill='%2379549e' fill-opacity='0.18' stroke='%2379549e' stroke-width='4'/%3E%3Ctext x='320' y='175' text-anchor='middle' font-family='sans-serif' font-size='26' font-weight='bold' fill='%233e1b45'%3EColetivo Mulheres da Serra%3C/text%3E%3Ctext x='320' y='215' text-anchor='middle' font-family='sans-serif' font-size='18' fill='%235a3263'%3ECultura popular e saraus%3C/text%3E%3C/svg%3E",
+          "alt": "Cartaz ilustrado das atividades do Coletivo Cultural Mulheres da Serra"
+        }
+      ],
+      "youtubeVideoId": "ysz5S6PUM-U"
+    }
+  },
+  {
+    "id": "espaco-leitura-tecer",
+    "nome": "Biblioteca Comunitária Tecer",
+    "categoria": "arte-cultura",
+    "descricaoCurta": "Clube de leitura feminino, empréstimo gratuito de livros e oficinas de escrita.",
+    "distrito": "Sede",
+    "endereco": "Rua Siqueira Campos, 77, Centro, Belo Jardim - PE",
+    "coordinates": [-36.4268, -8.3349],
+    "horarioFuncionamento": "Terça a sexta, 13h às 17h30",
+    "instagram": "@bibliotecatecerbj",
+    "tags": ["leitura", "literatura", "juventude"],
+    "verificado": false
+  },
+  {
+    "id": "cooperativa-sabores-agua-fria",
+    "nome": "Cozinha Solidária Sabores de Água Fria",
+    "categoria": "empreendedoras",
+    "descricaoCurta": "Produção de bolos regionais, doces de frutas e quitandas liderada por mulheres.",
+    "descricaoCompleta": "Empreendimento coletivo de gastronomia regional que abastece feiras agroecológicas de Belo Jardim com receitas tradicionais e encomendas para eventos.",
+    "distrito": "Água Fria",
+    "endereco": "Av. Dom Pedro II, 95, Água Fria, Belo Jardim - PE",
+    "coordinates": [-36.3589, -8.3821],
+    "horarioFuncionamento": "Segunda a sábado, 08h às 16h",
+    "whatsapp": "5581995003311",
+    "instagram": "@saboresaguafria",
+    "tags": ["gastronomia", "agricultura-familiar", "empreendedorismo"],
+    "verificado": true,
+    "dataVerificacao": "2026-10-28",
+    "midia": {
+      "fotos": [
+        {
+          "url": "data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 640 360'%3E%3Crect width='640' height='360' fill='%23f9f4bc'/%3E%3Crect x='24' y='24' width='592' height='312' rx='16' fill='%23e89041' fill-opacity='0.25' stroke='%233e1b45' stroke-width='4'/%3E%3Ctext x='320' y='175' text-anchor='middle' font-family='sans-serif' font-size='26' font-weight='bold' fill='%233e1b45'%3ESabores de Água Fria%3C/text%3E%3Ctext x='320' y='215' text-anchor='middle' font-family='sans-serif' font-size='18' fill='%235a3263'%3EGastronomia regional solidária%3C/text%3E%3C/svg%3E",
+          "alt": "Ilustração dos produtos regionais da Cozinha Solidária Sabores de Água Fria"
+        }
+      ]
+    }
+  },
+  {
+    "id": "rede-empreendedoras-xucuru",
+    "nome": "Feira das Empreendedoras de Xucuru",
+    "categoria": "empreendedoras",
+    "descricaoCurta": "Ponto de apoio e venda direta de hortaliças, polpas e costura criativa no Xucuru.",
+    "distrito": "Xucuru",
+    "endereco": "Vila Central de Xucuru, s/n, Distrito de Xucuru, Belo Jardim - PE",
+    "coordinates": [-36.4912, -8.3189],
+    "whatsapp": "5581996127744",
+    "tags": ["feira-livre", "costura", "economia-local"],
+    "verificado": true,
+    "dataVerificacao": "2026-10-19"
+  }
+]
