@@ -294,6 +294,11 @@ describe("BeloJardimMap", () => {
     expect(source?.clusterMaxZoom).toBe(14);
     expect(source?.clusterRadius).toBe(48);
 
+    const clusterCountLayer = map.getLayer("locais-cluster-count") as
+      | { layout?: Record<string, unknown> }
+      | undefined;
+    expect(clusterCountLayer?.layout?.["text-font"]).toEqual(["Noto Sans Bold"]);
+
     const markerBtn = await screen.findByRole("button", {
       name: /UBS Centro — Saúde da Mulher/i,
     });

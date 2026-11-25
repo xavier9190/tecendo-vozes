@@ -1,4 +1,4 @@
-import { copyFileSync, existsSync, mkdirSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 
 const rootDir = process.cwd();
@@ -19,6 +19,11 @@ if (!existsSync(sourceWorkerPath)) {
   process.exit(1);
 }
 
+const workerSource = readFileSync(sourceWorkerPath, "utf8").replace(
+  /\r?\n\/\/# sourceMappingURL=maplibre-gl-worker\.mjs\.map\s*$/,
+  "\n",
+);
+
 mkdirSync(targetDir, { recursive: true });
-copyFileSync(sourceWorkerPath, targetWorkerPath);
+writeFileSync(targetWorkerPath, workerSource, "utf8");
 console.log(`✅ Worker do MapLibre sincronizado em ${path.relative(rootDir, targetWorkerPath)}`);

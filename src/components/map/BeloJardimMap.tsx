@@ -296,6 +296,7 @@ export function BeloJardimMap({
           filter: ["has", "point_count"],
           layout: {
             "text-field": ["get", "point_count_abbreviated"],
+            "text-font": ["Noto Sans Bold"],
             "text-size": 13,
           },
           paint: {
