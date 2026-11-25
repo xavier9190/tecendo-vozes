@@ -73,6 +73,16 @@ function buildCategoryColorExpression(): unknown[] {
   return expr;
 }
 
+function applyMarkerSelectionState(button: HTMLButtonElement, isSelected: boolean): void {
+  button.setAttribute("aria-pressed", String(isSelected));
+  const badge = button.firstElementChild;
+  if (badge instanceof HTMLElement) {
+    badge.style.borderColor = isSelected ? PALETTE_TOKENS.butterCream : PALETTE_TOKENS.purpleDeep;
+    badge.style.transform = isSelected ? "scale(1.15)" : "";
+    badge.style.boxShadow = isSelected ? `0 0 0 3px ${PALETTE_TOKENS.coral}` : "";
+  }
+}
+
 function createPlaceMarkerElement(place: Local, isSelected: boolean): HTMLButtonElement {
   const category = getCategoryToken(place.categoria);
   const button = document.createElement("button");
@@ -82,7 +92,6 @@ function createPlaceMarkerElement(place: Local, isSelected: boolean): HTMLButton
     "aria-label",
     `${place.nome} — ${category.label} (${place.distrito})`,
   );
-  button.setAttribute("aria-pressed", String(isSelected));
   button.className =
     "group flex min-h-11 min-w-11 items-center justify-center rounded-full p-1 focus-visible:outline-none";
 
@@ -90,13 +99,8 @@ function createPlaceMarkerElement(place: Local, isSelected: boolean): HTMLButton
   badge.ariaHidden = "true";
   badge.style.backgroundColor = category.markerBg;
   badge.style.color = category.markerIconColor;
-  badge.style.borderColor = isSelected ? PALETTE_TOKENS.butterCream : PALETTE_TOKENS.purpleDeep;
   badge.className =
     "flex h-9 w-9 items-center justify-center rounded-full border-2 shadow-md transition-transform group-hover:scale-110";
-  if (isSelected) {
-    badge.style.transform = "scale(1.15)";
-    badge.style.boxShadow = `0 0 0 3px ${PALETTE_TOKENS.coral}`;
-  }
 
   badge.innerHTML = renderToStaticMarkup(
     createElement(category.icon, {
@@ -106,6 +110,7 @@ function createPlaceMarkerElement(place: Local, isSelected: boolean): HTMLButton
   );
 
   button.appendChild(badge);
+  applyMarkerSelectionState(button, isSelected);
   return button;
 }
 
@@ -179,8 +184,8 @@ export function BeloJardimMap({
       const existing = markersRef.current.get(id);
       if (existing) {
         const btn = existing.getElement?.();
-        if (btn) {
-          btn.setAttribute("aria-pressed", String(selectedPlaceIdRef.current === id));
+        if (btn instanceof HTMLButtonElement) {
+          applyMarkerSelectionState(btn, selectedPlaceIdRef.current === id);
         }
         continue;
       }
@@ -432,14 +437,22 @@ export function BeloJardimMap({
       return;
     }
     placesRef.current = places;
-    selectedPlaceIdRef.current = selectedPlaceId;
     const source = map.getSource(LOCAIS_SOURCE_ID) as GeoJSONSource | undefined;
     if (source) {
       source.setData(toLocaisGeoJson(places) as unknown as Parameters<GeoJSONSource["setData"]>[0]);
     }
     clearMarkers();
     syncUnclusteredMarkers(map);
-  }, [places, selectedPlaceId, clearMarkers, syncUnclusteredMarkers]);
+  }, [places, clearMarkers, syncUnclusteredMarkers]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) {
+      return;
+    }
+    selectedPlaceIdRef.current = selectedPlaceId;
+    syncUnclusteredMarkers(map);
+  }, [selectedPlaceId, syncUnclusteredMarkers]);
 
   const handleRecenter = () => {
     const map = mapRef.current;
