@@ -1,13 +1,61 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
-import { render, screen } from "@testing-library/react";
+import { cleanup, render, screen } from "@testing-library/react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { describe, expect, it } from "vitest";
-import RootLayout, { metadata } from "./layout";
-import HomePage from "./page";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { PALETTE_COLORS } from "@/lib/theme/palette";
 
-describe("base Next.js shell, layout, and WCAG theme tokens", () => {
+vi.mock("maplibre-gl", () => {
+  class MockMap {
+    on = vi.fn().mockReturnThis();
+    off = vi.fn().mockReturnThis();
+    addSource = vi.fn();
+    getSource = vi.fn();
+    addLayer = vi.fn();
+    getLayer = vi.fn();
+    setStyle = vi.fn();
+    queryRenderedFeatures = vi.fn(() => []);
+    easeTo = vi.fn();
+    getCenter = vi.fn(() => ({ lng: -36.424, lat: -8.3358 }));
+    getZoom = vi.fn(() => 13);
+    getBounds = vi.fn(() => ({
+      getWest: () => -36.62,
+      getSouth: () => -8.52,
+      getEast: () => -36.22,
+      getNorth: () => -8.15,
+    }));
+    getCanvas = vi.fn(() => ({ style: { cursor: "" } }));
+    remove = vi.fn();
+  }
+  class MockMarker {
+    setLngLat = vi.fn().mockReturnThis();
+    addTo = vi.fn().mockReturnThis();
+    remove = vi.fn();
+  }
+  return {
+    default: {
+      Map: MockMap,
+      Marker: MockMarker,
+      addProtocol: vi.fn(),
+    },
+    Map: MockMap,
+    Marker: MockMarker,
+    addProtocol: vi.fn(),
+  };
+});
+
+vi.mock("pmtiles", () => ({
+  Protocol: class MockProtocol {
+    tile = vi.fn();
+  },
+}));
+
+import RootLayout, { metadata } from "./layout";
+import HomePage from "./page";
+
+afterEach(cleanup);
+
+describe("HomePage MapShell, layout, and WCAG theme tokens", () => {
   it("configures Portuguese metadata, lang='pt-BR', skip-to-content link, and zero tracking scripts", () => {
     expect(metadata.title).toContain("Tecendo Vozes");
     const html = renderToStaticMarkup(
@@ -22,26 +70,17 @@ describe("base Next.js shell, layout, and WCAG theme tokens", () => {
     expect(html).not.toMatch(/googletagmanager|google-analytics|gtag|clarity|hotjar/i);
   });
 
-  it("renders the responsive base shell with Tecendo Vozes structure and all 6 category tokens", () => {
+  it("renders the interactive Belo Jardim map shell and Pernambuco mini-map on HomePage", () => {
     render(<HomePage />);
 
     expect(
       screen.getByRole("heading", { level: 1, name: /tecendo vozes/i }),
     ).toBeInTheDocument();
     expect(screen.getByRole("main")).toHaveAttribute("id", "conteudo-principal");
-
-    const expectedLabels = [
-      "Saúde",
-      "Proteção e apoio",
-      "Apoio público",
-      "Artesanato",
-      "Arte e cultura",
-      "Empreendedoras",
-    ];
-
-    for (const label of expectedLabels) {
-      expect(screen.getByText(label)).toBeInTheDocument();
-    }
+    expect(screen.getByTestId("belo-jardim-map-canvas")).toBeInTheDocument();
+    expect(screen.getByTestId("pernambuco-minimap")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /voltar ao centro/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /minha localização/i })).toBeInTheDocument();
   });
 
   it("defines all 12 official palette CSS tokens, rem typography, focus rings, and prefers-reduced-motion", () => {
