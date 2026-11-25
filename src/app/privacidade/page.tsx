@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import { PROJECT_INFO } from "@/components/emergency/EmergencyConstants";
 import { LegalPageShell } from "@/components/legal/LegalPageShell";
+import { PROJECT_INFO } from "@/lib/project-info";
 
 export const metadata: Metadata = {
   title: "Política de Privacidade — Tecendo Vozes",

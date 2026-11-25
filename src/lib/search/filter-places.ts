@@ -1,21 +1,12 @@
 import type { Local } from "@/lib/data/schema";
+import { normalizeText } from "@/lib/text/normalize";
 import type { CategoryId } from "@/lib/theme/categories";
+
+export { normalizeText };
 
 export interface PlaceFilterCriteria {
   query: string;
   selectedCategories: ReadonlySet<CategoryId> | readonly CategoryId[];
-}
-
-/**
- * Normalizes text for accent- and case-insensitive client-side matching.
- */
-export function normalizeText(text: string): string {
-  return text
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .replace(/\s+/g, " ")
-    .trim();
 }
 
 function toCategorySet(

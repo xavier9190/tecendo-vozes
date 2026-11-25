@@ -41,11 +41,9 @@ export function SearchAndFilters({
 
   const containerPositionClasses = isListView
     ? "relative z-30 w-full shrink-0 px-3 pt-3 md:px-6 md:pt-4"
-    : "pointer-events-none absolute top-3 left-3 right-3 z-30 md:top-4 md:left-4 md:right-auto md:w-[27rem]";
+    : "pointer-events-none relative z-30 w-full shrink-0";
 
-  const searchRowClearanceClasses = isListView
-    ? "w-full md:max-w-[27rem]"
-    : "w-full pr-14 sm:pr-48 md:pr-0";
+  const searchRowClearanceClasses = "w-full md:max-w-[27rem]";
 
   return (
     <div

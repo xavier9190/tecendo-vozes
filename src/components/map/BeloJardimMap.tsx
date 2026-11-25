@@ -12,7 +12,12 @@ import {
 import { Protocol } from "pmtiles";
 import { createElement, useCallback, useEffect, useRef, useState } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { toLocaisGeoJson, isWithinBeloJardimBounds, type Local } from "@/lib/data/schema";
+import {
+  toLocaisGeoJson,
+  isWithinBeloJardimBounds,
+  type LngLat,
+  type Local,
+} from "@/lib/data/schema";
 import {
   BELO_JARDIM_BOUNDS,
   BELO_JARDIM_CENTER,
@@ -20,14 +25,19 @@ import {
   MAX_ZOOM,
   MIN_ZOOM,
 } from "@/lib/geo/belo-jardim";
-import { buildMapStyle, buildOfflineMapStyle } from "@/lib/map/style";
+import {
+  buildMapStyle,
+  buildOfflineMapStyle,
+  resolveInitialMapStyleStage,
+  type MapStyleStage,
+} from "@/lib/map/style";
 import { CATEGORIES, getCategoryToken } from "@/lib/theme/categories";
 import { PALETTE_TOKENS } from "@/lib/theme/palette";
 
 export interface MapViewport {
-  center: [number, number];
+  center: LngLat;
   zoom: number;
-  bounds: [[number, number], [number, number]];
+  bounds: readonly [LngLat, LngLat];
 }
 
 export interface BeloJardimMapProps {
@@ -131,7 +141,8 @@ export function BeloJardimMap({
   const onSelectPlaceRef = useRef(onSelectPlace);
   const onViewportChangeRef = useRef(onViewportChange);
   const onMapErrorRef = useRef(onMapError);
-  const offlineFallbackAppliedRef = useRef(false);
+  const styleStageRef = useRef<MapStyleStage>("openfreemap");
+  const styleFallbackAppliedRef = useRef(false);
   const layerListenersAttachedRef = useRef(false);
 
   const [statusMessage, setStatusMessage] = useState<string>("");
@@ -263,7 +274,12 @@ export function BeloJardimMap({
         });
       }
 
-      if (!map.getLayer(CLUSTER_COUNT_LAYER_ID)) {
+      const activeStyle = typeof map.getStyle === "function" ? map.getStyle() : undefined;
+      const supportsGlyphs =
+        styleStageRef.current !== "offline" &&
+        (activeStyle === undefined || Boolean(activeStyle?.glyphs));
+
+      if (supportsGlyphs && !map.getLayer(CLUSTER_COUNT_LAYER_ID)) {
         map.addLayer({
           id: CLUSTER_COUNT_LAYER_ID,
           type: "symbol",
@@ -358,9 +374,13 @@ export function BeloJardimMap({
 
     ensurePmtilesProtocol();
 
+    const initialStage = resolveInitialMapStyleStage();
+    styleStageRef.current = initialStage;
+    styleFallbackAppliedRef.current = false;
+
     const map = new MapLibreMap({
       container,
-      style: buildMapStyle(),
+      style: buildMapStyle({ mode: initialStage }),
       center: [BELO_JARDIM_CENTER[0], BELO_JARDIM_CENTER[1]],
       zoom: DEFAULT_ZOOM,
       minZoom: MIN_ZOOM,
@@ -391,16 +411,26 @@ export function BeloJardimMap({
     };
 
     const handleStyleLoad = () => {
-      if (offlineFallbackAppliedRef.current) {
+      if (styleFallbackAppliedRef.current) {
         setupPlacesSourceAndLayers(map);
       }
     };
 
     const handleError = (event: { error?: unknown }) => {
-      if (offlineFallbackAppliedRef.current) {
+      if (styleStageRef.current === "pmtiles") {
+        styleStageRef.current = "openfreemap";
+        styleFallbackAppliedRef.current = true;
+        setStatusMessage("Carregando servidor alternativo de mapas (OpenFreeMap)...");
+        map.setStyle(buildMapStyle({ mode: "openfreemap" }));
         return;
       }
-      offlineFallbackAppliedRef.current = true;
+
+      if (styleStageRef.current === "offline") {
+        return;
+      }
+
+      styleStageRef.current = "offline";
+      styleFallbackAppliedRef.current = true;
       setStatusMessage("Mapa em modo offline simplificado (sem conexão com o servidor de mapas).");
       map.setStyle(buildOfflineMapStyle());
       const err =
@@ -443,6 +473,36 @@ export function BeloJardimMap({
     }
     clearMarkers();
     syncUnclusteredMarkers(map);
+
+    if (!source) {
+      return;
+    }
+
+    let cancelled = false;
+    const resyncAfterAsyncUpdate = () => {
+      if (!cancelled) {
+        syncUnclusteredMarkers(map);
+      }
+    };
+    const handleSourceDataOnce = (event: { sourceId?: string; isSourceLoaded?: boolean }) => {
+      if (event.sourceId === LOCAIS_SOURCE_ID && event.isSourceLoaded) {
+        map.off("sourcedata", handleSourceDataOnce);
+        resyncAfterAsyncUpdate();
+      }
+    };
+    const handleIdleOnce = () => {
+      map.off("idle", handleIdleOnce);
+      resyncAfterAsyncUpdate();
+    };
+
+    map.on("sourcedata", handleSourceDataOnce);
+    map.on("idle", handleIdleOnce);
+
+    return () => {
+      cancelled = true;
+      map.off("sourcedata", handleSourceDataOnce);
+      map.off("idle", handleIdleOnce);
+    };
   }, [places, clearMarkers, syncUnclusteredMarkers]);
 
   useEffect(() => {
@@ -481,7 +541,7 @@ export function BeloJardimMap({
     navigator.geolocation.getCurrentPosition(
       (position) => {
         setIsLocating(false);
-        const coords: [number, number] = [
+        const coords: LngLat = [
           position.coords.longitude,
           position.coords.latitude,
         ];
@@ -505,11 +565,11 @@ export function BeloJardimMap({
         dot.className =
           "h-4 w-4 rounded-full border-2 border-tv-cream-mint bg-tv-coral shadow-md";
         userLocationMarkerRef.current = new Marker({ element: dot })
-          .setLngLat(coords)
+          .setLngLat([coords[0], coords[1]])
           .addTo(map);
 
         map.easeTo({
-          center: coords,
+          center: [coords[0], coords[1]],
           zoom: Math.max(map.getZoom(), 14),
           duration: getTransitionDuration(),
         });
@@ -539,8 +599,8 @@ export function BeloJardimMap({
         className="h-full w-full"
       />
 
-      {/* Map navigation controls — top-right to avoid top-left search (#6), bottom-left mini-map (#4), bottom-right menu (#7) */}
-      <div className="pointer-events-none absolute top-3 right-3 z-20 flex flex-col items-end gap-2">
+      {/* Map navigation controls — below mobile SearchAndFilters (clear of EmergencyBar) and top-right on desktop */}
+      <div className="pointer-events-none absolute top-48 right-3 z-20 flex flex-col items-end gap-2 md:top-4 md:right-4">
         <button
           type="button"
           onClick={handleRecenter}

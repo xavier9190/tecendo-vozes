@@ -1,7 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
+import { EmergencyBar } from "@/components/emergency/EmergencyBar";
+import { MapOfflineFallback } from "@/components/emergency/MapOfflineFallback";
+import { ThreeDotsMenu } from "@/components/emergency/ThreeDotsMenu";
 import { AccessibleListView } from "@/components/list/AccessibleListView";
+import { PlaceDetailsModal } from "@/components/place/PlaceDetailsModal";
+import { PlacePreview } from "@/components/place/PlacePreview";
 import { SearchAndFilters } from "@/components/search/SearchAndFilters";
 import type { Local } from "@/lib/data/schema";
 import {
@@ -9,14 +14,10 @@ import {
   BELO_JARDIM_CENTER,
   DEFAULT_ZOOM,
 } from "@/lib/geo/belo-jardim";
-import { PlaceInspectionSlot } from "@/components/place/PlaceInspectionSlot";
 import { filterPlaces } from "@/lib/search/filter-places";
 import type { CategoryId } from "@/lib/theme/categories";
 import { BeloJardimMap, type MapViewport } from "./BeloJardimMap";
 import { PernambucoMiniMap } from "./PernambucoMiniMap";
-import { EmergencyBar } from "@/components/emergency/EmergencyBar";
-import { MapOfflineFallback } from "@/components/emergency/MapOfflineFallback";
-import { ThreeDotsMenu } from "@/components/emergency/ThreeDotsMenu";
 
 export interface MapShellSlotContext {
   places: readonly Local[];
@@ -52,7 +53,8 @@ export function MapShell({
   renderPlaceDetailsSlot,
   renderEmergencyMenuSlot,
 }: MapShellProps) {
-  const [selectedPlace, setSelectedPlace] = useState<Local | null>(null);
+  const [selectedPlace, setSelectedPlaceState] = useState<Local | null>(null);
+  const [detailsPlaceId, setDetailsPlaceId] = useState<string | null>(null);
   const [viewport, setViewport] = useState<MapViewport>(INITIAL_VIEWPORT);
   const [mapError, setMapError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<"map" | "list">("map");
@@ -61,6 +63,13 @@ export function MapShell({
   const [selectedCategories, setSelectedCategories] = useState<Set<CategoryId>>(
     () => new Set(),
   );
+
+  const setSelectedPlace = useCallback((place: Local | null) => {
+    setSelectedPlaceState(place);
+    setDetailsPlaceId((prev) => (place && prev === place.id ? prev : null));
+  }, []);
+
+  const isDetailsOpen = Boolean(selectedPlace && detailsPlaceId === selectedPlace.id);
 
   const filteredPlaces = useMemo(
     () => filterPlaces(places, { query, selectedCategories }),
@@ -84,23 +93,32 @@ export function MapShell({
     setSelectedCategories(new Set());
   };
 
+  // Single centralized Escape handler closing strictly one layer at a time:
+  // PlaceDetailsModal -> ThreeDotsMenu -> PlacePreview
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key !== "Escape") {
         return;
       }
+      if (isDetailsOpen) {
+        event.preventDefault();
+        setDetailsPlaceId(null);
+        return;
+      }
       if (isMenuOpen) {
+        event.preventDefault();
         setIsMenuOpen(false);
         return;
       }
       if (selectedPlace) {
+        event.preventDefault();
         setSelectedPlace(null);
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isMenuOpen, selectedPlace]);
+  }, [isDetailsOpen, isMenuOpen, selectedPlace, setSelectedPlace]);
 
   const slotContext: MapShellSlotContext = {
     places: filteredPlaces,
@@ -115,43 +133,31 @@ export function MapShell({
   };
 
   const hideMobileCornerOverlays = Boolean(selectedPlace) || isMenuOpen;
+  const showOfflineFallback = Boolean(mapError) && viewMode === "map";
 
-  const defaultSearchAndList =
-    viewMode === "list" ? (
-      <div
-        className={`relative z-20 flex h-full w-full flex-col bg-tv-cream-warm transition-all ${
-          isMenuOpen ? "pointer-events-none blur-sm" : ""
-        }`}
-      >
-        <SearchAndFilters
-          query={query}
-          onQueryChange={setQuery}
-          selectedCategories={selectedCategories}
-          onToggleCategory={handleToggleCategory}
-          viewMode={viewMode}
-          onViewModeChange={setViewMode}
-          resultCount={filteredPlaces.length}
-          totalCount={places.length}
-        />
-        <AccessibleListView
-          places={filteredPlaces}
-          selectedPlaceId={selectedPlace?.id ?? null}
-          onSelectPlace={setSelectedPlace}
-          onClearFilters={handleClearFilters}
-        />
-      </div>
-    ) : (
-      <SearchAndFilters
-        query={query}
-        onQueryChange={setQuery}
-        selectedCategories={selectedCategories}
-        onToggleCategory={handleToggleCategory}
-        viewMode={viewMode}
-        onViewModeChange={setViewMode}
-        resultCount={filteredPlaces.length}
-        totalCount={places.length}
-      />
-    );
+  const searchAndFilters = (
+    <SearchAndFilters
+      query={query}
+      onQueryChange={setQuery}
+      selectedCategories={selectedCategories}
+      onToggleCategory={handleToggleCategory}
+      viewMode={viewMode}
+      onViewModeChange={setViewMode}
+      resultCount={filteredPlaces.length}
+      totalCount={places.length}
+    />
+  );
+
+  const placePreviewNode = renderPlaceDetailsSlot ? (
+    renderPlaceDetailsSlot(slotContext)
+  ) : selectedPlace ? (
+    <PlacePreview
+      place={selectedPlace}
+      onClose={() => setSelectedPlace(null)}
+      onOpenDetails={(place) => setDetailsPlaceId(place.id)}
+      handleEscape={false}
+    />
+  ) : null;
 
   return (
     <main
@@ -179,51 +185,81 @@ export function MapShell({
         />
       </div>
 
-      {/* Slot #6: Top-left Search Bar, Multi-select Category Filters & Accessible List View */}
-      {renderSearchAndListSlot ? renderSearchAndListSlot(slotContext) : defaultSearchAndList}
+      {/* Shared Left Column in Map View (SearchAndFilters -> PlacePreview -> PernambucoMiniMap) or Accessible List View */}
+      {viewMode === "list" ? (
+        renderSearchAndListSlot ? (
+          renderSearchAndListSlot(slotContext)
+        ) : (
+          <div
+            className={`relative z-20 flex h-full w-full flex-col bg-tv-cream-warm transition-all ${
+              isMenuOpen ? "pointer-events-none blur-sm" : ""
+            }`}
+          >
+            {searchAndFilters}
+            <div className="relative flex min-h-0 flex-1">
+              {placePreviewNode ? (
+                <div className="pointer-events-none shrink-0 md:p-4 md:pr-0">
+                  {placePreviewNode}
+                </div>
+              ) : null}
+              <AccessibleListView
+                places={filteredPlaces}
+                selectedPlaceId={selectedPlace?.id ?? null}
+                onSelectPlace={setSelectedPlace}
+                onClearFilters={handleClearFilters}
+              />
+            </div>
+          </div>
+        )
+      ) : (
+        <div className="pointer-events-none absolute inset-y-0 left-0 right-0 flex flex-col gap-3 p-3 md:right-auto md:w-[27rem] md:p-4">
+          {renderSearchAndListSlot ? renderSearchAndListSlot(slotContext) : searchAndFilters}
 
-      {/* Slot #5: Responsive Place Preview (Mobile Bottom Sheet ~1/3 / Desktop Left Side Panel ~1/4) & Full Details */}
-      {renderPlaceDetailsSlot ? (
-        renderPlaceDetailsSlot(slotContext)
-      ) : selectedPlace ? (
-        <PlaceInspectionSlot
+          <div className="pointer-events-none flex min-h-0 flex-1 flex-col items-start">
+            {placePreviewNode}
+          </div>
+
+          <div
+            className={`pointer-events-none relative z-20 shrink-0 self-start ${
+              hideMobileCornerOverlays ? "hidden md:block" : "block"
+            }`}
+          >
+            <PernambucoMiniMap center={viewport.center} />
+          </div>
+        </div>
+      )}
+
+      {/* Full Details Dialog rendered at top level so z-50 is never trapped by sibling stacking contexts */}
+      {!renderPlaceDetailsSlot && selectedPlace ? (
+        <PlaceDetailsModal
           place={selectedPlace}
-          onClose={() => setSelectedPlace(null)}
+          isOpen={isDetailsOpen}
+          onClose={() => setDetailsPlaceId(null)}
+          handleEscape={false}
         />
       ) : null}
-
-      {/* Bottom-left Pernambuco Mini-Map (hidden on mobile while Bottom Sheet / menu is open, or in List View) */}
-      <div
-        className={`pointer-events-none absolute bottom-3 left-3 z-20 ${
-          viewMode === "list"
-            ? "hidden"
-            : hideMobileCornerOverlays
-              ? "hidden md:block"
-              : "block"
-        }`}
-      >
-        <PernambucoMiniMap center={viewport.center} />
-      </div>
 
       {/* Slot #7: Bottom-right Three Dots Menu (with backdrop blur) & Permanent Emergency Layer */}
       {renderEmergencyMenuSlot ? (
         renderEmergencyMenuSlot(slotContext)
       ) : (
         <>
-          {mapError && viewMode === "map" ? (
+          {showOfflineFallback ? (
             <MapOfflineFallback
               errorMessage={mapError}
               onSwitchToList={() => setViewMode("list")}
             />
-          ) : null}
-          <EmergencyBar
-            variant="floating"
-            isPlaceSelected={Boolean(selectedPlace)}
-          />
+          ) : (
+            <EmergencyBar
+              variant="floating"
+              isPlaceSelected={Boolean(selectedPlace)}
+            />
+          )}
           <ThreeDotsMenu
             isOpen={isMenuOpen}
             onOpenChange={setIsMenuOpen}
             hideTriggerOnMobile={Boolean(selectedPlace)}
+            handleEscape={false}
           />
         </>
       )}

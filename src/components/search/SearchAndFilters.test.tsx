@@ -23,8 +23,8 @@ describe("SearchAndFilters", () => {
     );
 
     const searchRegion = screen.getByRole("search", { name: /busca e filtros/i });
-    expect(searchRegion.className).toContain("md:top-4");
-    expect(searchRegion.className).toContain("md:left-4");
+    expect(searchRegion).toBeInTheDocument();
+    expect(searchRegion.className).toContain("z-30");
 
     const searchRow = screen.getByTestId("search-bar-row");
     expect(within(searchRow).queryAllByRole("button")).toHaveLength(0);

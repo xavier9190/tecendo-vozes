@@ -1,10 +1,10 @@
 "use client";
 
-import { BadgeCheck, ChevronRight, MapPin } from "lucide-react";
+import { ChevronRight, MapPin } from "lucide-react";
 import Link from "next/link";
-import { PROJECT_INFO } from "@/components/emergency/EmergencyConstants";
+import { PlaceBadges } from "@/components/place/place-helpers";
 import type { Local } from "@/lib/data/schema";
-import { getCategoryToken } from "@/lib/theme/categories";
+import { PROJECT_INFO } from "@/lib/project-info";
 
 export interface AccessibleListViewProps {
   places: readonly Local[];
@@ -48,8 +48,6 @@ export function AccessibleListView({
           className="mx-auto grid max-w-5xl grid-cols-1 gap-3 md:grid-cols-2"
         >
           {places.map((place) => {
-            const category = getCategoryToken(place.categoria);
-            const CategoryIcon = category.icon;
             const isSelected = selectedPlaceId === place.id;
 
             return (
@@ -62,35 +60,7 @@ export function AccessibleListView({
                   }`}
                 >
                   <div className="flex flex-col gap-2">
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <span
-                        style={{
-                          backgroundColor: category.badgeBg,
-                          color: category.badgeText,
-                          borderColor: category.borderColor,
-                        }}
-                        className="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-bold"
-                      >
-                        <span
-                          aria-hidden="true"
-                          style={{
-                            backgroundColor: category.markerBg,
-                            color: category.markerIconColor,
-                          }}
-                          className="inline-flex h-4 w-4 items-center justify-center rounded-full"
-                        >
-                          <CategoryIcon className="h-3 w-3" aria-hidden="true" />
-                        </span>
-                        <span>{category.label}</span>
-                      </span>
-
-                      {place.verificado ? (
-                        <span className="inline-flex items-center gap-1 rounded-full border border-tv-purple-dark bg-tv-cream-butter px-2.5 py-0.5 text-xs font-bold text-tv-purple-deep">
-                          <BadgeCheck className="h-3.5 w-3.5 text-tv-purple-deep" aria-hidden="true" />
-                          <span>Verificado</span>
-                        </span>
-                      ) : null}
-                    </div>
+                    <PlaceBadges place={place} />
 
                     <h2 className="text-base font-bold text-tv-purple-deep">
                       {place.nome}

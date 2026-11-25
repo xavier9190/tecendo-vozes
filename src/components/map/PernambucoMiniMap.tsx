@@ -4,24 +4,19 @@ import {
   PERNAMBUCO_OUTLINE_PATH,
   PERNAMBUCO_SVG_VIEWBOX,
   projectCoordsToPernambucoSvg,
+  type LngLat,
 } from "@/lib/geo/belo-jardim";
 import { PALETTE_TOKENS } from "@/lib/theme/palette";
 
 export interface PernambucoMiniMapProps {
-  center: readonly [number, number];
-  hidden?: boolean;
+  center: LngLat;
   className?: string;
 }
 
 export function PernambucoMiniMap({
   center,
-  hidden = false,
   className = "",
 }: PernambucoMiniMapProps) {
-  if (hidden) {
-    return null;
-  }
-
   const point = projectCoordsToPernambucoSvg(center[0], center[1]);
   const formattedCoords = `${center[1].toFixed(3)}, ${center[0].toFixed(3)}`;
 

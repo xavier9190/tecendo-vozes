@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { PALETTE_TOKENS } from "@/lib/theme/palette";
-import { buildMapStyle, buildOfflineMapStyle } from "./style";
+import {
+  OPENFREEMAP_VECTOR_URL,
+  buildMapStyle,
+  buildOfflineMapStyle,
+  resolveInitialMapStyleStage,
+} from "./style";
 
 describe("MapLibre style builder (PMTiles, OpenFreeMap, Portuguese labels, offline fallback)", () => {
   it("builds a self-contained offline style with cream background, Belo Jardim highlight, and inverted mask", () => {
@@ -73,5 +78,27 @@ describe("MapLibre style builder (PMTiles, OpenFreeMap, Portuguese labels, offli
     const style = buildMapStyle({ mode: "offline" });
     expect(style.sources).not.toHaveProperty("openmaptiles");
     expect(style.sources).toHaveProperty("belo-jardim-mask");
+    expect(style.glyphs).toBeUndefined();
+  });
+
+  it("forces OpenFreeMap vector source when mode is explicitly openfreemap even if NEXT_PUBLIC_PMTILES_URL is set", () => {
+    const prev = process.env.NEXT_PUBLIC_PMTILES_URL;
+    process.env.NEXT_PUBLIC_PMTILES_URL = "https://cdn.example.org/belo-jardim.pmtiles";
+
+    try {
+      expect(resolveInitialMapStyleStage()).toBe("pmtiles");
+      const openFreeMapStyle = buildMapStyle({ mode: "openfreemap" });
+      expect(openFreeMapStyle.sources.openmaptiles).toMatchObject({
+        type: "vector",
+        url: OPENFREEMAP_VECTOR_URL,
+      });
+      expect(openFreeMapStyle.glyphs).toBeTruthy();
+    } finally {
+      if (prev !== undefined) {
+        process.env.NEXT_PUBLIC_PMTILES_URL = prev;
+      } else {
+        delete process.env.NEXT_PUBLIC_PMTILES_URL;
+      }
+    }
   });
 });

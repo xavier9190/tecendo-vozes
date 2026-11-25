@@ -2,7 +2,7 @@ import { ArrowLeft, FileText, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { EmergencyBar } from "@/components/emergency/EmergencyBar";
-import { PROJECT_INFO } from "@/components/emergency/EmergencyConstants";
+import { PROJECT_INFO } from "@/lib/project-info";
 
 export interface LegalPageShellProps {
   title: string;

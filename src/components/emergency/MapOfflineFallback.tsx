@@ -19,7 +19,7 @@ export function MapOfflineFallback({
       data-testid="map-offline-fallback"
       role="region"
       aria-label="Mapa indisponível — modo offline e Visão em Lista"
-      className={`pointer-events-auto absolute inset-x-3 top-20 z-20 mx-auto max-h-[72dvh] max-w-lg overflow-y-auto rounded-3xl border-2 border-tv-purple-deep bg-tv-cream-mint/95 p-4 text-tv-purple-deep shadow-2xl backdrop-blur-xs md:top-1/2 md:-translate-y-1/2 md:p-6 ${className}`.trim()}
+      className={`pointer-events-auto absolute inset-x-3 top-48 z-[35] mx-auto max-h-[calc(100dvh-13.5rem)] max-w-lg overflow-y-auto rounded-3xl border-2 border-tv-purple-deep bg-tv-cream-mint/95 p-4 text-tv-purple-deep shadow-2xl backdrop-blur-xs md:top-64 md:max-h-[calc(100dvh-18rem)] md:p-6 lg:left-[29rem] lg:right-4 lg:top-1/2 lg:max-h-[75dvh] lg:-translate-y-1/2 ${className}`.trim()}
     >
       <div className="flex flex-col gap-4">
         <div className="flex items-start gap-3">
@@ -35,7 +35,9 @@ export function MapOfflineFallback({
               locais e contatos de emergência continuam acessíveis na Visão em Lista.
             </p>
             {errorMessage ? (
-              <p className="mt-1 text-xs text-tv-purple-mid">Detalhe: {errorMessage}</p>
+              <p className="mt-1 text-xs font-medium text-tv-purple-dark">
+                Detalhe: {errorMessage}
+              </p>
             ) : null}
           </div>
         </div>

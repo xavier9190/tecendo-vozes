@@ -1,8 +1,8 @@
-import { BELO_JARDIM_BOUNDS } from "@/lib/data/schema";
+import { BELO_JARDIM_BOUNDS, type LngLat } from "@/lib/data/schema";
 
-export { BELO_JARDIM_BOUNDS };
+export { BELO_JARDIM_BOUNDS, type LngLat };
 
-export const BELO_JARDIM_CENTER: readonly [number, number] = [-36.424, -8.3358];
+export const BELO_JARDIM_CENTER: LngLat = [-36.424, -8.3358];
 
 export const MIN_ZOOM = 11;
 export const MAX_ZOOM = 18;
@@ -12,7 +12,7 @@ export const DEFAULT_ZOOM = 13;
  * Closed polygon ring ([lng, lat]) delineating the municipality of Belo Jardim – PE,
  * encompassing Sede, Serra do Vento, Água Fria, and Xucuru inside BELO_JARDIM_BOUNDS.
  */
-export const BELO_JARDIM_BOUNDARY_RING: readonly (readonly [number, number])[] = [
+export const BELO_JARDIM_BOUNDARY_RING: readonly LngLat[] = [
   [-36.54, -8.29],
   [-36.47, -8.23],
   [-36.39, -8.2],
@@ -26,7 +26,7 @@ export const BELO_JARDIM_BOUNDARY_RING: readonly (readonly [number, number])[] =
   [-36.54, -8.29],
 ];
 
-const WORLD_OUTER_RING: readonly (readonly [number, number])[] = [
+const WORLD_OUTER_RING: readonly LngLat[] = [
   [-180, -85],
   [180, -85],
   [180, 85],
@@ -129,7 +129,7 @@ export function projectCoordsToPernambucoSvg(
   };
 }
 
-const PERNAMBUCO_APPROX_COORDS: readonly (readonly [number, number])[] = [
+const PERNAMBUCO_APPROX_COORDS: readonly LngLat[] = [
   [-41.35, -8.68],
   [-40.95, -7.85],
   [-40.2, -7.45],

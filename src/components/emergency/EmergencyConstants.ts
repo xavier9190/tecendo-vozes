@@ -59,13 +59,3 @@ export const WHATSAPP_180_CONTACT = {
   ariaLabel: "Abrir WhatsApp oficial do Ligue 180 em nova aba",
   description: "Atendimento oficial do Ligue 180 via WhatsApp (+55 61 9610-0180)",
 } as const;
-
-export const PROJECT_INFO = {
-  name: "Tecendo Vozes",
-  subtitle: "Mapa Local para Mulheres em Belo Jardim – PE",
-  coverage: "Sede, Serra do Vento, Água Fria e Xucuru",
-  privacySummary:
-    "Privacidade absoluta por padrão: zero cookies de rastreamento, zero analytics identificável e zero histórico de busca ou navegação armazenado no dispositivo.",
-  lgpdContactName: "Pedro Xavier",
-  lgpdContactRole: "Responsável pelo projeto e atendimento LGPD",
-} as const;

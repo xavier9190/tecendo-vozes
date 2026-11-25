@@ -20,7 +20,7 @@ const VERIFIED_PLACE: Local = {
 afterEach(cleanup);
 
 describe("PlacePreview", () => {
-  it("renders unified responsive preview content with category badge, verification, directions, details action, and >=44px close button", () => {
+  it("renders unified responsive preview content with category badge, verification, details action (without duplicate Como chegar), and >=44px close button", () => {
     render(
       <PlacePreview
         place={VERIFIED_PLACE}
@@ -34,19 +34,19 @@ describe("PlacePreview", () => {
     });
     expect(preview).toBeInTheDocument();
 
-    // Responsive presentation classes: mobile Bottom Sheet (~1/3) + desktop Left Side Panel (~1/4 below search bar and filters)
+    // Responsive presentation classes: mobile Bottom Sheet (~1/3) + desktop Left Side Panel (~1/4 in left column)
     expect(preview.className).toContain("max-md:h-[34dvh]");
     expect(preview.className).toContain("max-md:bottom-0");
-    expect(preview.className).toContain("md:top-60");
-    expect(preview.className).toContain("md:w-1/4");
-    expect(preview.className).toContain("z-40");
+    expect(preview.className).toContain("md:relative");
+    expect(preview.className).toContain("md:w-[25vw]");
+    expect(preview.className).toContain("md:z-40");
 
     // Core content rendered once (same DOM in mobile and desktop)
     expect(
       screen.getByRole("heading", { level: 2, name: VERIFIED_PLACE.nome }),
     ).toBeInTheDocument();
     expect(screen.getByText("Saúde")).toBeInTheDocument();
-    expect(screen.getByText(/verificado/i)).toBeInTheDocument();
+    expect(screen.getByText(/local verificado/i)).toBeInTheDocument();
     expect(screen.getByText(VERIFIED_PLACE.descricaoCurta)).toBeInTheDocument();
     expect(screen.getByText(/Sede/)).toBeInTheDocument();
     expect(screen.getByText(/Rua Coronel Antônio Marinho, 145/)).toBeInTheDocument();
@@ -54,14 +54,8 @@ describe("PlacePreview", () => {
     const detailsButton = screen.getByRole("button", { name: /ver detalhes/i });
     expect(detailsButton.className).toContain("min-h-11");
 
-    const directionsLink = screen.getByRole("link", { name: /como chegar/i });
-    expect(directionsLink).toHaveAttribute(
-      "href",
-      "https://www.openstreetmap.org/directions?to=-8.3358%2C-36.424",
-    );
-    expect(directionsLink).toHaveAttribute("target", "_blank");
-    expect(directionsLink).toHaveAttribute("rel", "noopener noreferrer");
-    expect(directionsLink.className).toContain("min-h-11");
+    // "Como chegar" belongs strictly to PlaceDetailsModal (no duplicate route link in preview)
+    expect(screen.queryByRole("link", { name: /como chegar/i })).not.toBeInTheDocument();
 
     const closeButton = screen.getByRole("button", {
       name: /fechar pré-visualização/i,
