@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { AccessibleListView } from "@/components/list/AccessibleListView";
+import { SearchAndFilters } from "@/components/search/SearchAndFilters";
 import type { Local } from "@/lib/data/schema";
 import {
   BELO_JARDIM_BOUNDS,
@@ -8,8 +10,13 @@ import {
   DEFAULT_ZOOM,
 } from "@/lib/geo/belo-jardim";
 import { PlaceInspectionSlot } from "@/components/place/PlaceInspectionSlot";
+import { filterPlaces } from "@/lib/search/filter-places";
+import type { CategoryId } from "@/lib/theme/categories";
 import { BeloJardimMap, type MapViewport } from "./BeloJardimMap";
 import { PernambucoMiniMap } from "./PernambucoMiniMap";
+import { EmergencyBar } from "@/components/emergency/EmergencyBar";
+import { MapOfflineFallback } from "@/components/emergency/MapOfflineFallback";
+import { ThreeDotsMenu } from "@/components/emergency/ThreeDotsMenu";
 
 export interface MapShellSlotContext {
   places: readonly Local[];
@@ -50,6 +57,32 @@ export function MapShell({
   const [mapError, setMapError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<"map" | "list">("map");
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
+  const [query, setQuery] = useState<string>("");
+  const [selectedCategories, setSelectedCategories] = useState<Set<CategoryId>>(
+    () => new Set(),
+  );
+
+  const filteredPlaces = useMemo(
+    () => filterPlaces(places, { query, selectedCategories }),
+    [places, query, selectedCategories],
+  );
+
+  const handleToggleCategory = (categoryId: CategoryId) => {
+    setSelectedCategories((prev) => {
+      const next = new Set(prev);
+      if (next.has(categoryId)) {
+        next.delete(categoryId);
+      } else {
+        next.add(categoryId);
+      }
+      return next;
+    });
+  };
+
+  const handleClearFilters = () => {
+    setQuery("");
+    setSelectedCategories(new Set());
+  };
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -70,7 +103,7 @@ export function MapShell({
   }, [isMenuOpen, selectedPlace]);
 
   const slotContext: MapShellSlotContext = {
-    places,
+    places: filteredPlaces,
     selectedPlace,
     setSelectedPlace,
     viewport,
@@ -82,6 +115,43 @@ export function MapShell({
   };
 
   const hideMobileCornerOverlays = Boolean(selectedPlace) || isMenuOpen;
+
+  const defaultSearchAndList =
+    viewMode === "list" ? (
+      <div
+        className={`relative z-20 flex h-full w-full flex-col bg-tv-cream-warm transition-all ${
+          isMenuOpen ? "pointer-events-none blur-sm" : ""
+        }`}
+      >
+        <SearchAndFilters
+          query={query}
+          onQueryChange={setQuery}
+          selectedCategories={selectedCategories}
+          onToggleCategory={handleToggleCategory}
+          viewMode={viewMode}
+          onViewModeChange={setViewMode}
+          resultCount={filteredPlaces.length}
+          totalCount={places.length}
+        />
+        <AccessibleListView
+          places={filteredPlaces}
+          selectedPlaceId={selectedPlace?.id ?? null}
+          onSelectPlace={setSelectedPlace}
+          onClearFilters={handleClearFilters}
+        />
+      </div>
+    ) : (
+      <SearchAndFilters
+        query={query}
+        onQueryChange={setQuery}
+        selectedCategories={selectedCategories}
+        onToggleCategory={handleToggleCategory}
+        viewMode={viewMode}
+        onViewModeChange={setViewMode}
+        resultCount={filteredPlaces.length}
+        totalCount={places.length}
+      />
+    );
 
   return (
     <main
@@ -101,7 +171,7 @@ export function MapShell({
         } ${viewMode === "list" ? "hidden" : "block"}`}
       >
         <BeloJardimMap
-          places={places}
+          places={filteredPlaces}
           selectedPlaceId={selectedPlace?.id ?? null}
           onSelectPlace={setSelectedPlace}
           onViewportChange={setViewport}
@@ -110,7 +180,7 @@ export function MapShell({
       </div>
 
       {/* Slot #6: Top-left Search Bar, Multi-select Category Filters & Accessible List View */}
-      {renderSearchAndListSlot?.(slotContext) ?? null}
+      {renderSearchAndListSlot ? renderSearchAndListSlot(slotContext) : defaultSearchAndList}
 
       {/* Slot #5: Responsive Place Preview (Mobile Bottom Sheet ~1/3 / Desktop Left Side Panel ~1/4) & Full Details */}
       {renderPlaceDetailsSlot ? (
@@ -122,17 +192,41 @@ export function MapShell({
         />
       ) : null}
 
-      {/* Bottom-left Pernambuco Mini-Map (hidden on mobile while Bottom Sheet / menu is open) */}
+      {/* Bottom-left Pernambuco Mini-Map (hidden on mobile while Bottom Sheet / menu is open, or in List View) */}
       <div
         className={`pointer-events-none absolute bottom-3 left-3 z-20 ${
-          hideMobileCornerOverlays ? "hidden md:block" : "block"
+          viewMode === "list"
+            ? "hidden"
+            : hideMobileCornerOverlays
+              ? "hidden md:block"
+              : "block"
         }`}
       >
         <PernambucoMiniMap center={viewport.center} />
       </div>
 
       {/* Slot #7: Bottom-right Three Dots Menu (with backdrop blur) & Permanent Emergency Layer */}
-      {renderEmergencyMenuSlot?.(slotContext) ?? null}
+      {renderEmergencyMenuSlot ? (
+        renderEmergencyMenuSlot(slotContext)
+      ) : (
+        <>
+          {mapError && viewMode === "map" ? (
+            <MapOfflineFallback
+              errorMessage={mapError}
+              onSwitchToList={() => setViewMode("list")}
+            />
+          ) : null}
+          <EmergencyBar
+            variant="floating"
+            isPlaceSelected={Boolean(selectedPlace)}
+          />
+          <ThreeDotsMenu
+            isOpen={isMenuOpen}
+            onOpenChange={setIsMenuOpen}
+            hideTriggerOnMobile={Boolean(selectedPlace)}
+          />
+        </>
+      )}
     </main>
   );
 }

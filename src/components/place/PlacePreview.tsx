@@ -53,7 +53,7 @@ export function PlacePreview({ place, onClose, onOpenDetails }: PlacePreviewProp
       tabIndex={-1}
       role="region"
       aria-label={`Pré-visualização de ${place.nome}`}
-      className="fixed z-40 flex flex-col justify-between gap-3 overflow-y-auto border-2 border-tv-purple-deep bg-tv-cream-mint p-4 text-tv-purple-deep shadow-xl focus:outline-none max-md:inset-x-0 max-md:bottom-0 max-md:h-[36dvh] max-md:min-h-[240px] max-md:rounded-t-2xl md:top-28 md:bottom-4 md:left-4 md:w-1/4 md:min-w-[300px] md:max-w-[380px] md:rounded-2xl"
+      className="fixed z-40 flex flex-col justify-between gap-3 overflow-y-auto border-2 border-tv-purple-deep bg-tv-cream-mint p-4 text-tv-purple-deep shadow-xl focus:outline-none max-md:inset-x-0 max-md:bottom-0 max-md:h-[34dvh] max-md:min-h-[220px] max-md:rounded-t-2xl md:top-60 md:bottom-4 md:left-4 md:w-1/4 md:min-w-[300px] md:max-w-[380px] md:rounded-2xl"
     >
       <div className="space-y-2.5">
         <div className="flex items-start justify-between gap-2">

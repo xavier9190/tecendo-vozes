@@ -34,10 +34,10 @@ describe("PlacePreview", () => {
     });
     expect(preview).toBeInTheDocument();
 
-    // Responsive presentation classes: mobile Bottom Sheet (~1/3) + desktop Left Side Panel (~1/4 below search bar)
-    expect(preview.className).toContain("max-md:h-[36dvh]");
+    // Responsive presentation classes: mobile Bottom Sheet (~1/3) + desktop Left Side Panel (~1/4 below search bar and filters)
+    expect(preview.className).toContain("max-md:h-[34dvh]");
     expect(preview.className).toContain("max-md:bottom-0");
-    expect(preview.className).toContain("md:top-28");
+    expect(preview.className).toContain("md:top-60");
     expect(preview.className).toContain("md:w-1/4");
     expect(preview.className).toContain("z-40");
 
