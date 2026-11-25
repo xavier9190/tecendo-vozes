@@ -4,9 +4,12 @@
   "private": true,
   "description": "Tecendo Vozes — Mapa Local para Mulheres em Belo Jardim (PE)",
   "scripts": {
+    "sync:maplibre-worker": "node scripts/sync-maplibre-worker.mjs",
+    "postinstall": "npm run sync:maplibre-worker",
+    "predev": "npm run sync:maplibre-worker",
     "dev": "next dev",
     "validate:data": "tsx scripts/validate-data.ts",
-    "prebuild": "npm run validate:data",
+    "prebuild": "node scripts/sync-maplibre-worker.mjs && npm run validate:data",
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",

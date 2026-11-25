@@ -6,6 +6,7 @@ import {
   addProtocol,
   Map as MapLibreMap,
   Marker,
+  setWorkerUrl,
   type GeoJSONSource,
   type GeoJSONSourceSpecification,
 } from "maplibre-gl";
@@ -54,7 +55,15 @@ const CLUSTERS_LAYER_ID = "locais-clusters";
 const CLUSTER_COUNT_LAYER_ID = "locais-cluster-count";
 const UNCLUSTERED_LAYER_ID = "locais-unclustered-point";
 
+export const MAPLIBRE_WORKER_URL = "/maplibre-gl-worker.js";
+
 let pmtilesProtocolRegistered = false;
+
+function ensureMapWorkerUrl(): void {
+  if (typeof setWorkerUrl === "function") {
+    setWorkerUrl(MAPLIBRE_WORKER_URL);
+  }
+}
 
 function ensurePmtilesProtocol(): void {
   if (pmtilesProtocolRegistered) {
@@ -372,6 +381,7 @@ export function BeloJardimMap({
       return;
     }
 
+    ensureMapWorkerUrl();
     ensurePmtilesProtocol();
 
     const initialStage = resolveInitialMapStyleStage();
