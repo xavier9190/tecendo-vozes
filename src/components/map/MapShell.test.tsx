@@ -173,4 +173,60 @@ describe("MapShell integration", () => {
     fireEvent.keyDown(window, { key: "Escape" });
     expect(screen.queryByTestId("selected-place")).not.toBeInTheDocument();
   });
+
+  it("renders default #7 ThreeDotsMenu and EmergencyBar, blurring map when menu opens and closing on Escape", () => {
+    render(<MapShell places={SAMPLE_PLACES} />);
+
+    const trigger = screen.getByRole("button", {
+      name: "Abrir menu de informações e denúncia",
+    });
+    expect(trigger).toBeInTheDocument();
+    expect(screen.getByTestId("emergency-bar")).toHaveTextContent(
+      "Este site não é um canal oficial de atendimento ou de denúncia. Em emergência, ligue 180, 190 ou 192.",
+    );
+
+    fireEvent.click(trigger);
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /sobre nós/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /denuncie/i })).toBeInTheDocument();
+
+    const mapCanvasWrapper = screen.getByTestId("belo-jardim-map-canvas").parentElement
+      ?.parentElement;
+    expect(mapCanvasWrapper?.className).toContain("blur-sm");
+
+    fireEvent.keyDown(window, { key: "Escape" });
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(trigger).toHaveFocus();
+  });
+
+  it("shows MapOfflineFallback on map error and switches MapShell to list view when requested", async () => {
+    render(<MapShell places={SAMPLE_PLACES} />);
+    const map = mapInstances[0];
+    map.emit("error", { error: new Error("Sem conexão") });
+
+    const fallback = await screen.findByTestId("map-offline-fallback");
+    expect(fallback).toBeInTheDocument();
+    expect(fallback).toHaveTextContent("Sem conexão");
+
+    const switchBtn = screen.getByRole("button", { name: /visão em lista/i });
+    fireEvent.click(switchBtn);
+
+    expect(screen.getByRole("main")).toHaveAttribute("data-view-mode", "list");
+    expect(screen.queryByTestId("map-offline-fallback")).not.toBeInTheDocument();
+    expect(screen.getByTestId("emergency-bar")).toBeInTheDocument();
+  });
+
+  it("honors a custom renderEmergencyMenuSlot when provided", () => {
+    render(
+      <MapShell
+        places={SAMPLE_PLACES}
+        renderEmergencyMenuSlot={() => <div data-testid="custom-slot-7">Custom</div>}
+      />,
+    );
+
+    expect(screen.getByTestId("custom-slot-7")).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Abrir menu de informações e denúncia" }),
+    ).not.toBeInTheDocument();
+  });
 });
