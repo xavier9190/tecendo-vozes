@@ -540,4 +540,34 @@ test.describe("Tecendo Vozes — WCAG 2.1 AA, Keyboard Navigation & Zero-Trackin
       await expect(preview).toBeHidden();
     }
   });
+
+  test("serves /maplibre-gl-worker.js cleanly and loads the map without worker errors", async ({
+    page,
+  }) => {
+    const workerErrors: string[] = [];
+    page.on("console", (message) => {
+      if (message.text().includes("Worker failed to load")) {
+        workerErrors.push(message.text());
+      }
+    });
+    page.on("pageerror", (error) => {
+      if (error.message.includes("Worker failed to load")) {
+        workerErrors.push(error.message);
+      }
+    });
+
+    const workerResponse = await page.request.get("/maplibre-gl-worker.js");
+    expect(workerResponse.status()).toBe(200);
+    expect(workerResponse.headers()["content-type"] ?? "").toMatch(/javascript/);
+
+    await page.goto("/");
+    await expect(page.getByTestId("belo-jardim-map-canvas")).toBeVisible();
+    await page.waitForTimeout(1500);
+
+    expect(workerErrors).toEqual([]);
+    const offlineFallback = page.getByTestId("map-offline-fallback");
+    if ((await offlineFallback.count()) > 0) {
+      await expect(offlineFallback).not.toContainText("Worker failed to load");
+    }
+  });
 });

@@ -5,7 +5,12 @@ const eslintConfig = [
   ...nextVitals,
   ...nextTs,
   {
-    ignores: ["playwright-report/**", "test-results/**", "coverage/**"],
+    ignores: [
+      "playwright-report/**",
+      "test-results/**",
+      "coverage/**",
+      "public/maplibre-gl-worker.js",
+    ],
   },
 ];
 

@@ -9,7 +9,7 @@ import {
   MIN_ZOOM,
 } from "@/lib/geo/belo-jardim";
 
-const { mapInstances, markerInstances, MockMap, MockMarker } = vi.hoisted(() => {
+const { mapInstances, markerInstances, mockSetWorkerUrl, MockMap, MockMarker } = vi.hoisted(() => {
   type MapEventHandler = (event?: unknown) => void;
   const DEFAULT_ZOOM_VAL = 13;
   const CENTER_VAL: [number, number] = [-36.424, -8.3358];
@@ -195,6 +195,7 @@ const { mapInstances, markerInstances, MockMap, MockMarker } = vi.hoisted(() => 
   return {
     mapInstances: instances,
     markerInstances: markers,
+    mockSetWorkerUrl: vi.fn(),
     MockMap: HoistedMockMap,
     MockMarker: HoistedMockMarker,
   };
@@ -205,10 +206,12 @@ vi.mock("maplibre-gl", () => ({
     Map: MockMap,
     Marker: MockMarker,
     addProtocol: vi.fn(),
+    setWorkerUrl: mockSetWorkerUrl,
   },
   Map: MockMap,
   Marker: MockMarker,
   addProtocol: vi.fn(),
+  setWorkerUrl: mockSetWorkerUrl,
 }));
 
 vi.mock("pmtiles", () => ({
@@ -290,6 +293,11 @@ describe("BeloJardimMap", () => {
     expect(source?.cluster).toBe(true);
     expect(source?.clusterMaxZoom).toBe(14);
     expect(source?.clusterRadius).toBe(48);
+
+    const clusterCountLayer = map.getLayer("locais-cluster-count") as
+      | { layout?: Record<string, unknown> }
+      | undefined;
+    expect(clusterCountLayer?.layout?.["text-font"]).toEqual(["Noto Sans Bold"]);
 
     const markerBtn = await screen.findByRole("button", {
       name: /UBS Centro — Saúde da Mulher/i,
@@ -492,5 +500,10 @@ describe("BeloJardimMap", () => {
 
     expect(await screen.findByTestId("map-marker-casa-artesas")).toBeInTheDocument();
     expect(screen.queryByTestId("map-marker-ubs-centro")).not.toBeInTheDocument();
+  });
+
+  it("configures MapLibre to load its bundled worker from /maplibre-gl-worker.js", () => {
+    render(<BeloJardimMap places={SAMPLE_PLACES} onSelectPlace={vi.fn()} />);
+    expect(mockSetWorkerUrl).toHaveBeenCalledWith("/maplibre-gl-worker.js");
   });
 });
