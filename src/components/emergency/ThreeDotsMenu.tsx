@@ -47,7 +47,7 @@ function ThreeDotsMenuDialog({
           onClose();
         }
       }}
-      className={`fixed inset-0 z-50 flex bg-tv-purple-deep/45 backdrop-blur-md ${
+      className={`animate-tv-backdrop fixed inset-0 z-50 flex bg-tv-purple-deep/45 backdrop-blur-md ${
         isCompactMenu
           ? "items-end justify-end pb-[4.5rem] pr-8 sm:pr-10 md:pb-20 md:pr-14"
           : "items-center justify-center p-4"
@@ -59,8 +59,8 @@ function ThreeDotsMenuDialog({
         aria-label="Menu de informações e denúncia"
         className={
           isCompactMenu
-            ? "w-[calc(100vw-3rem)] max-w-64 rounded-2xl border-2 border-tv-purple-deep bg-tv-cream-mint p-3.5 text-tv-purple-deep shadow-2xl sm:max-w-72"
-            : "max-h-[90dvh] w-full max-w-md overflow-y-auto rounded-3xl border-2 border-tv-purple-deep bg-tv-cream-mint p-6 text-tv-purple-deep shadow-2xl"
+            ? "origin-bottom-right animate-tv-menu-grow w-[calc(100vw-3rem)] max-w-64 rounded-2xl border-2 border-tv-purple-deep bg-tv-cream-mint p-3.5 text-tv-purple-deep shadow-2xl sm:max-w-72"
+            : "animate-tv-dialog max-h-[90dvh] w-full max-w-md overflow-y-auto rounded-3xl border-2 border-tv-purple-deep bg-tv-cream-mint p-6 text-tv-purple-deep shadow-2xl"
         }
       >
         {activeView === "menu" ? (

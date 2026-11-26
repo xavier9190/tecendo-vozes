@@ -57,7 +57,7 @@ export function PlacePreview({
       tabIndex={-1}
       role="region"
       aria-label={`Pré-visualização de ${place.nome}`}
-      className="pointer-events-auto flex flex-col overflow-hidden border-2 border-tv-purple-deep bg-tv-cream-mint text-tv-purple-deep shadow-2xl focus:outline-none max-md:fixed max-md:inset-x-0 max-md:bottom-0 max-md:z-40 max-md:max-h-[48dvh] max-md:min-h-[240px] max-md:rounded-t-2xl md:relative md:z-40 md:h-full md:max-h-full md:w-[32vw] md:min-w-[340px] md:max-w-[420px] md:rounded-2xl"
+      className="animate-tv-place-panel pointer-events-auto flex flex-col overflow-hidden border-2 border-tv-purple-deep bg-tv-cream-mint text-tv-purple-deep shadow-2xl focus:outline-none max-md:fixed max-md:inset-x-0 max-md:bottom-0 max-md:z-40 max-md:max-h-[48dvh] max-md:min-h-[240px] max-md:rounded-t-2xl md:relative md:z-40 md:h-full md:max-h-full md:w-[32vw] md:min-w-[340px] md:max-w-[420px] md:rounded-2xl"
     >
       <div className="relative shrink-0 border-b border-tv-lavender/60 bg-tv-cream-warm">
         {firstPhoto ? (

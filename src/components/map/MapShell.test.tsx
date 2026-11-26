@@ -254,16 +254,14 @@ describe("MapShell integration", () => {
     expect(screen.getByTestId("map-marker-ubs-centro")).toHaveFocus();
   });
 
-  it("renders default #7 ThreeDotsMenu and EmergencyBar, blurring map when menu opens and closing on Escape", () => {
+  it("renders default #7 ThreeDotsMenu without floating EmergencyBar on map, blurring map when menu opens and closing on Escape", () => {
     render(<MapShell places={SAMPLE_PLACES} />);
 
     const trigger = screen.getByRole("button", {
       name: "Abrir menu de informações e denúncia",
     });
     expect(trigger).toBeInTheDocument();
-    expect(screen.getByTestId("emergency-bar")).toHaveTextContent(
-      "Este site não é um canal oficial de atendimento ou de denúncia. Em emergência, ligue 180, 190 ou 192.",
-    );
+    expect(screen.queryByTestId("emergency-bar")).not.toBeInTheDocument();
 
     fireEvent.click(trigger);
     expect(screen.getByRole("dialog")).toBeInTheDocument();
@@ -320,7 +318,7 @@ describe("MapShell integration", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("shows MapOfflineFallback without duplicating EmergencyBar on map error and switches MapShell to list view when requested", async () => {
+  it("shows MapOfflineFallback with EmergencyBar on map error without rendering it during normal map usage", async () => {
     render(<MapShell places={SAMPLE_PLACES} />);
     const map = mapInstances[0];
     map.emit("error", { error: new Error("Sem conexão") });
@@ -329,13 +327,7 @@ describe("MapShell integration", () => {
     expect(fallback).toBeInTheDocument();
     expect(fallback).toHaveTextContent("Sem conexão");
     expect(screen.getAllByTestId("emergency-bar")).toHaveLength(1);
-
-    const switchBtn = within(fallback).getByRole("button", { name: /visão em lista/i });
-    fireEvent.click(switchBtn);
-
-    expect(screen.getByRole("main")).toHaveAttribute("data-view-mode", "list");
-    expect(screen.queryByTestId("map-offline-fallback")).not.toBeInTheDocument();
-    expect(screen.getAllByTestId("emergency-bar")).toHaveLength(1);
+    expect(within(fallback).queryByRole("button", { name: /visão em lista/i })).not.toBeInTheDocument();
   });
 
   it("honors a custom renderEmergencyMenuSlot when provided", () => {
@@ -377,10 +369,13 @@ const MULTI_PLACES: Local[] = [
   },
 ];
 
-describe("MapShell search, category filters, and accessible list view", () => {
-  it("synchronizes accent-insensitive search and multi-select category filters across map markers and list view", async () => {
+describe("MapShell search and category filters", () => {
+  it("synchronizes accent-insensitive search and multi-select category filters across map markers without result counter or list view", async () => {
     const user = userEvent.setup();
     render(<MapShell places={MULTI_PLACES} />);
+
+    expect(screen.queryByText(/locais encontrados/i)).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /visão em lista/i })).not.toBeInTheDocument();
 
     const map = mapInstances[0];
     map.unclusteredFeatures = MULTI_PLACES.map((place) => ({
@@ -410,7 +405,7 @@ describe("MapShell search, category filters, and accessible list view", () => {
       expect(screen.queryByTestId("map-marker-cram-protecao")).not.toBeInTheDocument();
     });
 
-    // Accent- and case-insensitive search narrows both map markers and list view
+    // Accent- and case-insensitive search narrows map markers
     const searchInput = screen.getByRole("searchbox", { name: /buscar locais por nome/i });
     await user.type(searchInput, "agua fria");
 
@@ -418,49 +413,6 @@ describe("MapShell search, category filters, and accessible list view", () => {
       expect(screen.getByTestId("map-marker-casa-artesas-agua-fria")).toBeInTheDocument();
       expect(screen.queryByTestId("map-marker-ubs-centro")).not.toBeInTheDocument();
     });
-
-    await user.click(screen.getByRole("button", { name: /visão em lista/i }));
-    const list = screen.getByRole("list", { name: /lista de locais/i });
-    const items = within(list).getAllByRole("listitem");
-    expect(items).toHaveLength(1);
-    expect(items[0]).toHaveTextContent("Casa das Artesãs de Água Fria");
-  });
-
-  it("opens the same selectedPlace preview from keyboard navigation in List View and resets empty state via Limpar filtros", async () => {
-    const user = userEvent.setup();
-    render(
-      <MapShell
-        places={MULTI_PLACES}
-        renderPlaceDetailsSlot={({ selectedPlace }) =>
-          selectedPlace ? <div data-testid="selected-place">{selectedPlace.nome}</div> : null
-        }
-      />,
-    );
-
-    await user.click(screen.getByRole("button", { name: /visão em lista/i }));
-
-    const detailButton = screen.getByRole("button", {
-      name: /ver detalhes de Casa das Artesãs de Água Fria/i,
-    });
-    detailButton.focus();
-    await user.keyboard("{Enter}");
-
-    expect(screen.getByTestId("selected-place")).toHaveTextContent(
-      "Casa das Artesãs de Água Fria",
-    );
-
-    fireEvent.keyDown(window, { key: "Escape" });
-    expect(screen.queryByTestId("selected-place")).not.toBeInTheDocument();
-
-    const searchInput = screen.getByRole("searchbox", { name: /buscar locais por nome/i });
-    await user.type(searchInput, "termo-sem-resultados");
-
-    expect(screen.getByText(/nenhum local encontrado/i)).toBeInTheDocument();
-
-    await user.click(screen.getByRole("button", { name: /limpar filtros/i }));
-
-    const list = screen.getByRole("list", { name: /lista de locais/i });
-    expect(within(list).getAllByRole("listitem")).toHaveLength(3);
   });
 
   it("performs zero network requests, zero storage reads/writes, and zero URL mutations during search and filtering", async () => {
@@ -478,7 +430,6 @@ describe("MapShell search, category filters, and accessible list view", () => {
     const searchInput = screen.getByRole("searchbox", { name: /buscar locais por nome/i });
     await user.type(searchInput, "Saude");
     await user.click(screen.getByRole("button", { name: "Saúde" }));
-    await user.click(screen.getByRole("button", { name: /visão em lista/i }));
     await user.click(screen.getByRole("button", { name: /limpar busca/i }));
 
     expect(fetchSpy).not.toHaveBeenCalled();

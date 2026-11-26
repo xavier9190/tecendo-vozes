@@ -81,7 +81,7 @@ describe("HomePage MapShell, layout, and WCAG theme tokens", () => {
     expect(screen.getByRole("main")).toHaveAttribute("id", "conteudo-principal");
     expect(screen.getByTestId("belo-jardim-map-canvas")).toBeInTheDocument();
     expect(screen.getByTestId("pernambuco-minimap")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /voltar ao centro/i })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /voltar ao centro/i })).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: /minha localização/i })).toBeInTheDocument();
   });
 

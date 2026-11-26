@@ -87,6 +87,92 @@ body {
   left: 0.75rem;
 }
 
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+@keyframes tv-backdrop-fade {
+  from {
+    opacity: 0;
+    backdrop-filter: blur(0px);
+  }
+  to {
+    opacity: 1;
+    backdrop-filter: blur(12px);
+  }
+}
+
+@keyframes tv-menu-grow {
+  from {
+    opacity: 0;
+    transform: scale(0.84) translate(8px, 10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translate(0, 0);
+  }
+}
+
+@keyframes tv-dialog-fade {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes tv-panel-slide-left {
+  from {
+    opacity: 0;
+    transform: translateX(-24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes tv-panel-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-tv-backdrop {
+  animation: tv-backdrop-fade 260ms ease-out both;
+}
+
+.animate-tv-menu-grow {
+  animation: tv-menu-grow 220ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-tv-dialog {
+  animation: tv-dialog-fade 220ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-tv-place-panel {
+  animation: tv-panel-slide-up 260ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@media (min-width: 768px) {
+  .animate-tv-place-panel {
+    animation-name: tv-panel-slide-left;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;

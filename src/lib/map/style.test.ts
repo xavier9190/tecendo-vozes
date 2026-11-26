@@ -101,4 +101,26 @@ describe("MapLibre style builder (PMTiles, OpenFreeMap, Portuguese labels, offli
       }
     }
   });
+
+  it("supports switching between 'original' (default classic) and 'rosa' (Tecendo Vozes) themes while keeping Portuguese labels and zero POIs", () => {
+    const originalStyle = buildMapStyle({ mode: "openfreemap", theme: "original" });
+    const rosaStyle = buildMapStyle({ mode: "openfreemap", theme: "rosa" });
+
+    const originalWater = originalStyle.layers.find((layer) => layer.id === "water");
+    const rosaWater = rosaStyle.layers.find((layer) => layer.id === "water");
+    expect(originalWater?.paint).toMatchObject({ "fill-color": "#9cc8eb" });
+    expect(rosaWater?.paint).toMatchObject({ "fill-color": PALETTE_TOKENS.lavenderLight });
+
+    const originalPark = originalStyle.layers.find((layer) => layer.id === "park-green");
+    expect(originalPark?.paint).toMatchObject({ "fill-color": "#c5e4be" });
+
+    for (const style of [originalStyle, rosaStyle]) {
+      const symbolLayers = style.layers.filter((layer) => layer.type === "symbol");
+      expect(symbolLayers.length).toBeGreaterThan(0);
+      for (const layer of symbolLayers) {
+        expect(JSON.stringify(layer.layout?.["text-field"])).toContain("name:pt");
+      }
+      expect(style.layers.some((layer) => layer.id === "belo-jardim-mask-fill")).toBe(true);
+    }
+  });
 });

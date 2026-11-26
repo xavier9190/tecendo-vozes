@@ -1,7 +1,7 @@
 "use client";
 
 import "maplibre-gl/dist/maplibre-gl.css";
-import { Crosshair, LocateFixed } from "lucide-react";
+import { LocateFixed } from "lucide-react";
 import {
   addProtocol,
   Map as MapLibreMap,
@@ -31,6 +31,7 @@ import {
   buildOfflineMapStyle,
   resolveInitialMapStyleStage,
   type MapStyleStage,
+  type MapTheme,
 } from "@/lib/map/style";
 import { CATEGORIES, getCategoryToken } from "@/lib/theme/categories";
 import { PALETTE_TOKENS } from "@/lib/theme/palette";
@@ -151,9 +152,11 @@ export function BeloJardimMap({
   const onViewportChangeRef = useRef(onViewportChange);
   const onMapErrorRef = useRef(onMapError);
   const styleStageRef = useRef<MapStyleStage>("openfreemap");
-  const styleFallbackAppliedRef = useRef(false);
+  const mapThemeRef = useRef<MapTheme>("original");
+  const styleReloadPendingRef = useRef(false);
   const layerListenersAttachedRef = useRef(false);
 
+  const [mapTheme, setMapTheme] = useState<MapTheme>("original");
   const [statusMessage, setStatusMessage] = useState<string>("");
   const [isLocating, setIsLocating] = useState<boolean>(false);
 
@@ -387,11 +390,11 @@ export function BeloJardimMap({
 
     const initialStage = resolveInitialMapStyleStage();
     styleStageRef.current = initialStage;
-    styleFallbackAppliedRef.current = false;
+    styleReloadPendingRef.current = false;
 
     const map = new MapLibreMap({
       container,
-      style: buildMapStyle({ mode: initialStage }),
+      style: buildMapStyle({ mode: initialStage, theme: mapThemeRef.current }),
       center: [BELO_JARDIM_CENTER[0], BELO_JARDIM_CENTER[1]],
       zoom: DEFAULT_ZOOM,
       minZoom: MIN_ZOOM,
@@ -422,7 +425,8 @@ export function BeloJardimMap({
     };
 
     const handleStyleLoad = () => {
-      if (styleFallbackAppliedRef.current) {
+      if (styleReloadPendingRef.current) {
+        styleReloadPendingRef.current = false;
         setupPlacesSourceAndLayers(map);
       }
     };
@@ -430,9 +434,9 @@ export function BeloJardimMap({
     const handleError = (event: { error?: unknown }) => {
       if (styleStageRef.current === "pmtiles") {
         styleStageRef.current = "openfreemap";
-        styleFallbackAppliedRef.current = true;
+        styleReloadPendingRef.current = true;
         setStatusMessage("Carregando servidor alternativo de mapas (OpenFreeMap)...");
-        map.setStyle(buildMapStyle({ mode: "openfreemap" }));
+        map.setStyle(buildMapStyle({ mode: "openfreemap", theme: mapThemeRef.current }));
         return;
       }
 
@@ -441,9 +445,9 @@ export function BeloJardimMap({
       }
 
       styleStageRef.current = "offline";
-      styleFallbackAppliedRef.current = true;
+      styleReloadPendingRef.current = true;
       setStatusMessage("Mapa em modo offline simplificado (sem conexão com o servidor de mapas).");
-      map.setStyle(buildOfflineMapStyle());
+      map.setStyle(buildOfflineMapStyle(mapThemeRef.current));
       const err =
         event?.error instanceof Error
           ? event.error
@@ -525,17 +529,18 @@ export function BeloJardimMap({
     syncUnclusteredMarkers(map);
   }, [selectedPlaceId, syncUnclusteredMarkers]);
 
-  const handleRecenter = () => {
+  const handleToggleTheme = () => {
+    const nextTheme: MapTheme = mapTheme === "original" ? "rosa" : "original";
+    setMapTheme(nextTheme);
+    mapThemeRef.current = nextTheme;
+
     const map = mapRef.current;
     if (!map) {
       return;
     }
-    setStatusMessage("Mapa centralizado em Belo Jardim.");
-    map.easeTo({
-      center: [BELO_JARDIM_CENTER[0], BELO_JARDIM_CENTER[1]],
-      zoom: DEFAULT_ZOOM,
-      duration: getTransitionDuration(),
-    });
+
+    styleReloadPendingRef.current = true;
+    map.setStyle(buildMapStyle({ mode: styleStageRef.current, theme: nextTheme }));
   };
 
   const handleGeolocation = () => {
@@ -610,18 +615,8 @@ export function BeloJardimMap({
         className="h-full w-full"
       />
 
-      {/* Map navigation controls — below mobile SearchAndFilters (clear of EmergencyBar) and top-right on desktop */}
-      <div className="pointer-events-none absolute top-48 right-3 z-20 flex flex-col items-end gap-2 md:top-4 md:right-4">
-        <button
-          type="button"
-          onClick={handleRecenter}
-          aria-label="Voltar ao centro de Belo Jardim"
-          className="pointer-events-auto inline-flex min-h-11 min-w-11 items-center gap-2 rounded-xl border-2 border-tv-purple-deep bg-tv-cream-mint/95 px-3 py-2 text-sm font-bold text-tv-purple-deep shadow-md transition-colors hover:bg-tv-cream-butter"
-        >
-          <Crosshair className="h-4 w-4 shrink-0 text-tv-coral" aria-hidden="true" />
-          <span className="hidden sm:inline">Voltar ao centro</span>
-        </button>
-
+      {/* Map navigation control — below mobile SearchAndFilters and top-right on desktop */}
+      <div className="pointer-events-none absolute top-32 right-3 z-20 flex flex-col items-end gap-2 md:top-4 md:right-4">
         <button
           type="button"
           onClick={handleGeolocation}
@@ -632,6 +627,35 @@ export function BeloJardimMap({
           <LocateFixed className="h-4 w-4 shrink-0 text-tv-purple-dark" aria-hidden="true" />
           <span className="hidden sm:inline">
             {isLocating ? "Localizando..." : "Minha localização"}
+          </span>
+        </button>
+
+        <button
+          type="button"
+          role="switch"
+          data-testid="map-theme-switch"
+          aria-checked={mapTheme === "rosa"}
+          aria-label="Alternar tema do mapa entre Original e Rosa"
+          onClick={handleToggleTheme}
+          className="pointer-events-auto inline-flex min-h-11 min-w-11 items-center gap-1 rounded-xl border-2 border-tv-purple-deep bg-tv-cream-mint/95 p-1 text-xs font-bold shadow-md transition-colors hover:bg-tv-cream-butter"
+        >
+          <span
+            className={`rounded-lg px-2.5 py-1.5 transition-colors ${
+              mapTheme === "original"
+                ? "bg-tv-purple-deep text-tv-cream-mint"
+                : "text-tv-purple-deep"
+            }`}
+          >
+            Original
+          </span>
+          <span
+            className={`rounded-lg px-2.5 py-1.5 transition-colors ${
+              mapTheme === "rosa"
+                ? "bg-tv-purple-deep text-tv-cream-mint"
+                : "text-tv-purple-deep"
+            }`}
+          >
+            Rosa
           </span>
         </button>
       </div>
