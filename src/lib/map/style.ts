@@ -16,11 +16,92 @@ export const PORTUGUESE_LABEL_EXPRESSION = [
 ] as unknown as string;
 
 export type MapStyleStage = "pmtiles" | "openfreemap" | "offline";
+export type MapTheme = "original" | "rosa";
 
 export interface BuildMapStyleOptions {
   pmtilesUrl?: string;
   mode?: "auto" | MapStyleStage;
+  theme?: MapTheme;
 }
+
+interface MapThemePalette {
+  background: string;
+  landuse: string;
+  landuseOpacity: number;
+  park: string;
+  parkOpacity: number;
+  water: string;
+  waterOpacity: number;
+  waterway: string;
+  buildingFill: string;
+  buildingOpacity: number;
+  buildingOutline: string;
+  roadMinor: string;
+  roadSecondary: string;
+  roadPrimaryCasing: string;
+  roadPrimary: string;
+  roadLabel: string;
+  roadLabelHalo: string;
+  placeLabel: string;
+  placeLabelHalo: string;
+  areaFill: string;
+  maskFill: string;
+  maskOpacity: number;
+  boundaryLine: string;
+}
+
+export const MAP_THEME_PALETTES: Record<MapTheme, MapThemePalette> = {
+  original: {
+    background: "#edeae2",
+    landuse: "#e2ded5",
+    landuseOpacity: 0.55,
+    park: "#c5e4be",
+    parkOpacity: 0.9,
+    water: "#9cc8eb",
+    waterOpacity: 0.9,
+    waterway: "#7eb6e6",
+    buildingFill: "#d8d2c7",
+    buildingOpacity: 0.65,
+    buildingOutline: "#c0b9ac",
+    roadMinor: "#ffffff",
+    roadSecondary: "#fff1a8",
+    roadPrimaryCasing: "#d98c3b",
+    roadPrimary: "#f9b86c",
+    roadLabel: "#262b31",
+    roadLabelHalo: "#ffffff",
+    placeLabel: "#1f2937",
+    placeLabelHalo: "#ffffff",
+    areaFill: "#edeae2",
+    maskFill: "#262b31",
+    maskOpacity: 0.3,
+    boundaryLine: "#475569",
+  },
+  rosa: {
+    background: PALETTE_TOKENS.warmCream,
+    landuse: PALETTE_TOKENS.butterCream,
+    landuseOpacity: 0.35,
+    park: PALETTE_TOKENS.mintCream,
+    parkOpacity: 0.85,
+    water: PALETTE_TOKENS.lavenderLight,
+    waterOpacity: 0.85,
+    waterway: PALETTE_TOKENS.lavender,
+    buildingFill: PALETTE_TOKENS.lavenderLight,
+    buildingOpacity: 0.45,
+    buildingOutline: PALETTE_TOKENS.lavender,
+    roadMinor: "#ffffff",
+    roadSecondary: PALETTE_TOKENS.mintCream,
+    roadPrimaryCasing: PALETTE_TOKENS.lavender,
+    roadPrimary: PALETTE_TOKENS.butterCream,
+    roadLabel: PALETTE_TOKENS.purpleDark,
+    roadLabelHalo: PALETTE_TOKENS.warmCream,
+    placeLabel: PALETTE_TOKENS.purpleDeep,
+    placeLabelHalo: PALETTE_TOKENS.mintCream,
+    areaFill: PALETTE_TOKENS.mintCream,
+    maskFill: PALETTE_TOKENS.purpleDeep,
+    maskOpacity: 0.42,
+    boundaryLine: PALETTE_TOKENS.purpleDark,
+  },
+};
 
 export function getConfiguredPmtilesUrl(pmtilesUrl?: string): string {
   return (pmtilesUrl ?? process.env.NEXT_PUBLIC_PMTILES_URL ?? "").trim();
@@ -43,43 +124,46 @@ function buildMaskAndBoundarySources(): Record<string, GeoJSONSourceSpecificatio
   };
 }
 
-const INVERTED_MASK_LAYERS: LayerSpecification[] = [
-  {
-    id: "belo-jardim-mask-fill",
-    type: "fill",
-    source: "belo-jardim-mask",
-    paint: {
-      "fill-color": PALETTE_TOKENS.purpleDeep,
-      "fill-opacity": 0.42,
+function buildInvertedMaskLayers(palette: MapThemePalette): LayerSpecification[] {
+  return [
+    {
+      id: "belo-jardim-mask-fill",
+      type: "fill",
+      source: "belo-jardim-mask",
+      paint: {
+        "fill-color": palette.maskFill,
+        "fill-opacity": palette.maskOpacity,
+      },
     },
-  },
-  {
-    id: "belo-jardim-border",
-    type: "line",
-    source: "belo-jardim-boundary",
-    paint: {
-      "line-color": PALETTE_TOKENS.purpleDark,
-      "line-width": 2.5,
-      "line-opacity": 0.9,
+    {
+      id: "belo-jardim-border",
+      type: "line",
+      source: "belo-jardim-boundary",
+      paint: {
+        "line-color": palette.boundaryLine,
+        "line-width": 2.5,
+        "line-opacity": 0.9,
+      },
     },
-  },
-];
+  ];
+}
 
 /**
  * Builds an inline GeoJSON-only fallback style with zero network requests,
  * used when tiles fail to load (offline/3G failure) or in offline mode.
  */
-export function buildOfflineMapStyle(): StyleSpecification {
+export function buildOfflineMapStyle(theme: MapTheme = "rosa"): StyleSpecification {
+  const palette = MAP_THEME_PALETTES[theme];
   return {
     version: 8,
-    name: "Tecendo Vozes Offline",
+    name: `Tecendo Vozes Offline (${theme})`,
     sources: buildMaskAndBoundarySources(),
     layers: [
       {
         id: "background",
         type: "background",
         paint: {
-          "background-color": PALETTE_TOKENS.warmCream,
+          "background-color": palette.background,
         },
       },
       {
@@ -87,11 +171,11 @@ export function buildOfflineMapStyle(): StyleSpecification {
         type: "fill",
         source: "belo-jardim-boundary",
         paint: {
-          "fill-color": PALETTE_TOKENS.mintCream,
+          "fill-color": palette.areaFill,
           "fill-opacity": 0.95,
         },
       },
-      ...INVERTED_MASK_LAYERS,
+      ...buildInvertedMaskLayers(palette),
     ],
   };
 }
@@ -101,8 +185,11 @@ export function buildOfflineMapStyle(): StyleSpecification {
  * or OpenFreeMap vector tiles, enforcing Portuguese labels and omitting commercial POIs.
  */
 export function buildMapStyle(options?: BuildMapStyleOptions): StyleSpecification {
+  const theme: MapTheme = options?.theme ?? "original";
+  const palette = MAP_THEME_PALETTES[theme];
+
   if (options?.mode === "offline") {
-    return buildOfflineMapStyle();
+    return buildOfflineMapStyle(theme);
   }
 
   const configuredPmtiles =
@@ -119,7 +206,7 @@ export function buildMapStyle(options?: BuildMapStyleOptions): StyleSpecificatio
       id: "background",
       type: "background",
       paint: {
-        "background-color": PALETTE_TOKENS.warmCream,
+        "background-color": palette.background,
       },
     },
     {
@@ -129,8 +216,8 @@ export function buildMapStyle(options?: BuildMapStyleOptions): StyleSpecificatio
       "source-layer": "landuse",
       filter: ["in", ["get", "class"], ["literal", ["residential", "suburb", "neighbourhood"]]],
       paint: {
-        "fill-color": PALETTE_TOKENS.butterCream,
-        "fill-opacity": 0.35,
+        "fill-color": palette.landuse,
+        "fill-opacity": palette.landuseOpacity,
       },
     },
     {
@@ -139,8 +226,8 @@ export function buildMapStyle(options?: BuildMapStyleOptions): StyleSpecificatio
       source: "openmaptiles",
       "source-layer": "park",
       paint: {
-        "fill-color": PALETTE_TOKENS.mintCream,
-        "fill-opacity": 0.85,
+        "fill-color": palette.park,
+        "fill-opacity": palette.parkOpacity,
       },
     },
     {
@@ -149,8 +236,8 @@ export function buildMapStyle(options?: BuildMapStyleOptions): StyleSpecificatio
       source: "openmaptiles",
       "source-layer": "water",
       paint: {
-        "fill-color": PALETTE_TOKENS.lavenderLight,
-        "fill-opacity": 0.85,
+        "fill-color": palette.water,
+        "fill-opacity": palette.waterOpacity,
       },
     },
     {
@@ -159,7 +246,7 @@ export function buildMapStyle(options?: BuildMapStyleOptions): StyleSpecificatio
       source: "openmaptiles",
       "source-layer": "waterway",
       paint: {
-        "line-color": PALETTE_TOKENS.lavender,
+        "line-color": palette.waterway,
         "line-width": 1.5,
       },
     },
@@ -170,9 +257,9 @@ export function buildMapStyle(options?: BuildMapStyleOptions): StyleSpecificatio
       "source-layer": "building",
       minzoom: 14,
       paint: {
-        "fill-color": PALETTE_TOKENS.lavenderLight,
-        "fill-opacity": 0.45,
-        "fill-outline-color": PALETTE_TOKENS.lavender,
+        "fill-color": palette.buildingFill,
+        "fill-opacity": palette.buildingOpacity,
+        "fill-outline-color": palette.buildingOutline,
       },
     },
     {
@@ -186,7 +273,7 @@ export function buildMapStyle(options?: BuildMapStyleOptions): StyleSpecificatio
         "line-join": "round",
       },
       paint: {
-        "line-color": "#ffffff",
+        "line-color": palette.roadMinor,
         "line-width": ["interpolate", ["linear"], ["zoom"], 12, 1, 16, 4.5],
       },
     },
@@ -201,7 +288,7 @@ export function buildMapStyle(options?: BuildMapStyleOptions): StyleSpecificatio
         "line-join": "round",
       },
       paint: {
-        "line-color": PALETTE_TOKENS.mintCream,
+        "line-color": palette.roadSecondary,
         "line-width": ["interpolate", ["linear"], ["zoom"], 11, 1.5, 16, 6],
       },
     },
@@ -216,7 +303,7 @@ export function buildMapStyle(options?: BuildMapStyleOptions): StyleSpecificatio
         "line-join": "round",
       },
       paint: {
-        "line-color": PALETTE_TOKENS.lavender,
+        "line-color": palette.roadPrimaryCasing,
         "line-width": ["interpolate", ["linear"], ["zoom"], 11, 3, 16, 10],
       },
     },
@@ -231,7 +318,7 @@ export function buildMapStyle(options?: BuildMapStyleOptions): StyleSpecificatio
         "line-join": "round",
       },
       paint: {
-        "line-color": PALETTE_TOKENS.butterCream,
+        "line-color": palette.roadPrimary,
         "line-width": ["interpolate", ["linear"], ["zoom"], 11, 2, 16, 8],
       },
     },
@@ -248,8 +335,8 @@ export function buildMapStyle(options?: BuildMapStyleOptions): StyleSpecificatio
         "text-size": 11,
       },
       paint: {
-        "text-color": PALETTE_TOKENS.purpleDark,
-        "text-halo-color": PALETTE_TOKENS.warmCream,
+        "text-color": palette.roadLabel,
+        "text-halo-color": palette.roadLabelHalo,
         "text-halo-width": 1.5,
       },
     },
@@ -265,17 +352,17 @@ export function buildMapStyle(options?: BuildMapStyleOptions): StyleSpecificatio
         "text-size": ["interpolate", ["linear"], ["zoom"], 11, 12, 15, 16],
       },
       paint: {
-        "text-color": PALETTE_TOKENS.purpleDeep,
-        "text-halo-color": PALETTE_TOKENS.mintCream,
+        "text-color": palette.placeLabel,
+        "text-halo-color": palette.placeLabelHalo,
         "text-halo-width": 2,
       },
     },
-    ...INVERTED_MASK_LAYERS,
+    ...buildInvertedMaskLayers(palette),
   ];
 
   return {
     version: 8,
-    name: "Tecendo Vozes Belo Jardim",
+    name: `Tecendo Vozes Belo Jardim (${theme})`,
     glyphs: OPENFREEMAP_GLYPHS_URL,
     sources: {
       openmaptiles: {

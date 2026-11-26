@@ -43,7 +43,8 @@ describe("PlacePreview", () => {
     });
     expect(preview).toBeInTheDocument();
 
-    // Responsive presentation classes: mobile Bottom Sheet + desktop ~1/3 Left Side Panel
+    // Responsive presentation classes & entrance animation
+    expect(preview.className).toContain("animate-tv-place-panel");
     expect(preview.className).toContain("max-md:max-h-[48dvh]");
     expect(preview.className).toContain("max-md:bottom-0");
     expect(preview.className).toContain("md:relative");

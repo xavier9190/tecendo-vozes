@@ -6,7 +6,7 @@ import { SearchAndFilters } from "./SearchAndFilters";
 afterEach(cleanup);
 
 describe("SearchAndFilters", () => {
-  it("renders the top-left search bar alone in its row, clear button when non-empty, and polite count", () => {
+  it("renders the top-left search bar alone in its row, clear button when non-empty, and omits result counter and List View toggle", () => {
     const onQueryChange = vi.fn();
 
     const { rerender } = render(
@@ -15,10 +15,6 @@ describe("SearchAndFilters", () => {
         onQueryChange={onQueryChange}
         selectedCategories={new Set<CategoryId>()}
         onToggleCategory={vi.fn()}
-        viewMode="map"
-        onViewModeChange={vi.fn()}
-        resultCount={12}
-        totalCount={12}
       />,
     );
 
@@ -28,6 +24,10 @@ describe("SearchAndFilters", () => {
 
     const searchRow = screen.getByTestId("search-bar-row");
     expect(within(searchRow).queryAllByRole("button")).toHaveLength(0);
+
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
+    expect(screen.queryByText(/locais encontrados/i)).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /visão em lista/i })).not.toBeInTheDocument();
 
     const searchInput = screen.getByRole("searchbox", { name: /buscar locais por nome/i });
     expect(searchInput).toHaveValue("");
@@ -42,10 +42,6 @@ describe("SearchAndFilters", () => {
         onQueryChange={onQueryChange}
         selectedCategories={new Set<CategoryId>()}
         onToggleCategory={vi.fn()}
-        viewMode="map"
-        onViewModeChange={vi.fn()}
-        resultCount={1}
-        totalCount={12}
       />,
     );
 
@@ -54,13 +50,9 @@ describe("SearchAndFilters", () => {
     expect(clearBtn.className).toContain("min-w-11");
     fireEvent.click(clearBtn);
     expect(onQueryChange).toHaveBeenCalledWith("");
-
-    const status = screen.getByRole("status");
-    expect(status).toHaveAttribute("aria-live", "polite");
-    expect(status).toHaveTextContent(/1 local encontrado/i);
   });
 
-  it("renders all 6 category chips with aria-pressed, icon, label, and toggles multi-select", () => {
+  it("renders all 6 category chips with hidden scrollbar horizontal scroll, aria-pressed, icon, label, and multi-select", () => {
     const onToggleCategory = vi.fn();
 
     render(
@@ -69,15 +61,12 @@ describe("SearchAndFilters", () => {
         onQueryChange={vi.fn()}
         selectedCategories={new Set<CategoryId>(["saude", "artesanato"])}
         onToggleCategory={onToggleCategory}
-        viewMode="map"
-        onViewModeChange={vi.fn()}
-        resultCount={4}
-        totalCount={12}
       />,
     );
 
     const filterGroup = screen.getByRole("group", { name: /filtrar por categoria/i });
     expect(filterGroup.className).toContain("overflow-x-auto");
+    expect(filterGroup.className).toContain("no-scrollbar");
 
     for (const category of CATEGORIES) {
       const chip = within(filterGroup).getByRole("button", { name: category.label });
@@ -90,46 +79,5 @@ describe("SearchAndFilters", () => {
 
     fireEvent.click(within(filterGroup).getByRole("button", { name: "Proteção e apoio" }));
     expect(onToggleCategory).toHaveBeenCalledWith("protecao-apoio");
-  });
-
-  it("toggles between Mapa and Visão em Lista with accessible state", () => {
-    const onViewModeChange = vi.fn();
-
-    const { rerender } = render(
-      <SearchAndFilters
-        query=""
-        onQueryChange={vi.fn()}
-        selectedCategories={new Set<CategoryId>()}
-        onToggleCategory={vi.fn()}
-        viewMode="map"
-        onViewModeChange={onViewModeChange}
-        resultCount={12}
-        totalCount={12}
-      />,
-    );
-
-    const toListBtn = screen.getByRole("button", { name: /visão em lista/i });
-    expect(toListBtn).toHaveAttribute("aria-pressed", "false");
-    expect(toListBtn.className).toContain("min-h-11");
-    fireEvent.click(toListBtn);
-    expect(onViewModeChange).toHaveBeenCalledWith("list");
-
-    rerender(
-      <SearchAndFilters
-        query=""
-        onQueryChange={vi.fn()}
-        selectedCategories={new Set<CategoryId>()}
-        onToggleCategory={vi.fn()}
-        viewMode="list"
-        onViewModeChange={onViewModeChange}
-        resultCount={12}
-        totalCount={12}
-      />,
-    );
-
-    const toMapBtn = screen.getByRole("button", { name: /ver no mapa/i });
-    expect(toMapBtn).toHaveAttribute("aria-pressed", "true");
-    fireEvent.click(toMapBtn);
-    expect(onViewModeChange).toHaveBeenCalledWith("map");
   });
 });
