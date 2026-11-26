@@ -1,19 +1,12 @@
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { cleanup, render, screen } from "@testing-library/react";
+import { afterEach, describe, expect, it } from "vitest";
 import { MapOfflineFallback } from "./MapOfflineFallback";
 
 afterEach(cleanup);
 
 describe("MapOfflineFallback", () => {
-  it("displays a friendly Portuguese message, switches to List View, and keeps disclaimer + tel: links actionable", () => {
-    const onSwitchToList = vi.fn();
-
-    render(
-      <MapOfflineFallback
-        errorMessage="Falha de rede ao carregar tiles"
-        onSwitchToList={onSwitchToList}
-      />,
-    );
+  it("displays a friendly Portuguese offline message and keeps disclaimer + tel: links actionable", () => {
+    render(<MapOfflineFallback errorMessage="Falha de rede ao carregar tiles" />);
 
     const region = screen.getByRole("region", {
       name: /mapa indisponível|modo offline/i,
@@ -25,12 +18,7 @@ describe("MapOfflineFallback", () => {
     expect(region).toHaveTextContent(
       "Este site não é um canal oficial de atendimento ou de denúncia. Em emergência, ligue 180, 190 ou 192.",
     );
-
-    const listButton = screen.getByRole("button", { name: /visão em lista/i });
-    expect(listButton.className).toContain("min-h-11");
-    expect(listButton.className).toContain("min-w-11");
-    fireEvent.click(listButton);
-    expect(onSwitchToList).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole("button", { name: /visão em lista/i })).not.toBeInTheDocument();
 
     for (const num of ["180", "190", "192", "197", "100"]) {
       const link = screen.getByRole("link", {

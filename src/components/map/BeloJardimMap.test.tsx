@@ -322,23 +322,12 @@ describe("BeloJardimMap", () => {
     });
   });
 
-  it("recenters the map to Belo Jardim when clicking 'Voltar ao centro'", () => {
+  it("omits the 'Voltar ao centro' button and keeps 'Minha localização' accessible", () => {
     render(<BeloJardimMap places={SAMPLE_PLACES} onSelectPlace={vi.fn()} />);
-    const map = mapInstances[0];
-    map.emit("load");
-
-    const recenterButton = screen.getByRole("button", { name: /voltar ao centro/i });
-    expect(recenterButton.className).toContain("min-h-11");
-    expect(recenterButton.className).toContain("min-w-11");
-
-    fireEvent.click(recenterButton);
-
-    expect(map.easeToCalls).toContainEqual(
-      expect.objectContaining({
-        center: [...BELO_JARDIM_CENTER],
-        zoom: DEFAULT_ZOOM,
-      }),
-    );
+    expect(screen.queryByRole("button", { name: /voltar ao centro/i })).not.toBeInTheDocument();
+    const geoButton = screen.getByRole("button", { name: /minha localização/i });
+    expect(geoButton.className).toContain("min-h-11");
+    expect(geoButton.className).toContain("min-w-11");
   });
 
   it("handles browser geolocation denial gracefully without throwing or storing coordinates", () => {
@@ -505,5 +494,38 @@ describe("BeloJardimMap", () => {
   it("configures MapLibre to load its bundled worker from /maplibre-gl-worker.js", () => {
     render(<BeloJardimMap places={SAMPLE_PLACES} onSelectPlace={vi.fn()} />);
     expect(mockSetWorkerUrl).toHaveBeenCalledWith("/maplibre-gl-worker.js");
+  });
+
+  it("toggles map theme between Original (default) and Rosa without storage writes and restores places on style.load", async () => {
+    const setItemSpy = vi.spyOn(Storage.prototype, "setItem");
+    render(<BeloJardimMap places={SAMPLE_PLACES} onSelectPlace={vi.fn()} />);
+
+    const map = mapInstances[0];
+    map.unclusteredFeatures = [
+      {
+        type: "Feature",
+        geometry: { type: "Point", coordinates: SAMPLE_PLACES[0].coordinates },
+        properties: { id: SAMPLE_PLACES[0].id },
+      },
+    ];
+    map.emit("load");
+
+    const themeSwitch = screen.getByRole("switch", {
+      name: /alternar tema do mapa entre original e rosa/i,
+    });
+    expect(themeSwitch).toHaveAttribute("aria-checked", "false");
+    expect((map.options.style as { name?: string }).name).toContain("(original)");
+
+    fireEvent.click(themeSwitch);
+    expect(themeSwitch).toHaveAttribute("aria-checked", "true");
+    expect(map.setStyleCalls).toHaveLength(1);
+    expect((map.setStyleCalls[0] as { name?: string }).name).toContain("(rosa)");
+    expect(await screen.findByTestId("map-marker-ubs-centro")).toBeInTheDocument();
+
+    fireEvent.click(themeSwitch);
+    expect(themeSwitch).toHaveAttribute("aria-checked", "false");
+    expect(map.setStyleCalls).toHaveLength(2);
+    expect((map.setStyleCalls[1] as { name?: string }).name).toContain("(original)");
+    expect(setItemSpy).not.toHaveBeenCalled();
   });
 });

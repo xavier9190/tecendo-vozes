@@ -37,6 +37,7 @@ function ThreeDotsMenuDialog({
   onClose: () => void;
 }) {
   const [activeView, setActiveView] = useState<MenuView>("menu");
+  const isCompactMenu = activeView === "menu";
 
   return (
     <div
@@ -46,31 +47,30 @@ function ThreeDotsMenuDialog({
           onClose();
         }
       }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-tv-purple-deep/45 p-4 backdrop-blur-md"
+      className={`animate-tv-backdrop fixed inset-0 z-50 flex bg-tv-purple-deep/45 backdrop-blur-md ${
+        isCompactMenu
+          ? "items-end justify-end pb-[4.5rem] pr-8 sm:pr-10 md:pb-20 md:pr-14"
+          : "items-center justify-center p-4"
+      }`}
     >
       <div
         role="dialog"
         aria-modal="true"
         aria-label="Menu de informações e denúncia"
-        className="max-h-[90dvh] w-full max-w-md overflow-y-auto rounded-3xl border-2 border-tv-purple-deep bg-tv-cream-mint p-6 text-tv-purple-deep shadow-2xl"
+        className={
+          isCompactMenu
+            ? "origin-bottom-right animate-tv-menu-grow w-[calc(100vw-3rem)] max-w-64 rounded-2xl border-2 border-tv-purple-deep bg-tv-cream-mint p-3.5 text-tv-purple-deep shadow-2xl sm:max-w-72"
+            : "animate-tv-dialog max-h-[90dvh] w-full max-w-md overflow-y-auto rounded-3xl border-2 border-tv-purple-deep bg-tv-cream-mint p-6 text-tv-purple-deep shadow-2xl"
+        }
       >
         {activeView === "menu" ? (
-          <div className="flex flex-col gap-4">
-            <div className="text-center">
-              <h2 className="text-xl font-extrabold text-tv-purple-deep">
-                {PROJECT_INFO.name}
-              </h2>
-              <p className="mt-1 text-sm font-medium text-tv-purple-dark">
-                {PROJECT_INFO.subtitle}
-              </p>
-            </div>
-
-            <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-2.5">
+            <div className="flex flex-col gap-2">
               <button
                 ref={firstActionRef}
                 type="button"
                 onClick={() => setActiveView("about")}
-                className="inline-flex min-h-11 min-w-11 w-full items-center justify-center gap-2.5 rounded-2xl border-2 border-tv-purple-deep bg-tv-purple-deep px-5 py-3.5 text-base font-bold text-tv-cream-mint shadow-sm transition-colors hover:bg-tv-purple-dark"
+                className="inline-flex min-h-11 min-w-11 w-full items-center justify-start gap-2.5 rounded-xl border-2 border-tv-purple-deep bg-tv-purple-deep px-4 py-2.5 text-sm font-bold text-tv-cream-mint shadow-sm transition-colors hover:bg-tv-purple-dark"
               >
                 <Info className="h-5 w-5 shrink-0 text-tv-amber" aria-hidden="true" />
                 <span>Sobre nós</span>
@@ -79,7 +79,7 @@ function ThreeDotsMenuDialog({
               <button
                 type="button"
                 onClick={() => setActiveView("report")}
-                className="inline-flex min-h-11 min-w-11 w-full items-center justify-center gap-2.5 rounded-2xl border-2 border-tv-purple-deep bg-tv-cream-butter px-5 py-3.5 text-base font-bold text-tv-purple-deep shadow-sm transition-colors hover:bg-tv-cream-warm"
+                className="inline-flex min-h-11 min-w-11 w-full items-center justify-start gap-2.5 rounded-xl border-2 border-tv-purple-deep bg-tv-cream-butter px-4 py-2.5 text-sm font-bold text-tv-purple-deep shadow-sm transition-colors hover:bg-tv-cream-warm"
               >
                 <ShieldAlert
                   className="h-5 w-5 shrink-0 text-tv-coral"
@@ -88,10 +88,6 @@ function ThreeDotsMenuDialog({
                 <span>Denuncie</span>
               </button>
             </div>
-
-            <p className="text-center text-xs font-medium text-tv-purple-dark">
-              Pressione Esc ou toque fora para fechar.
-            </p>
           </div>
         ) : null}
 
@@ -275,7 +271,9 @@ export function ThreeDotsMenu({
         aria-expanded={isOpen}
         aria-haspopup="dialog"
         onClick={() => (isOpen ? closeMenu() : openMenu())}
-        className={`absolute bottom-3 right-3 z-30 min-h-11 min-w-11 h-11 w-11 items-center justify-center rounded-full border-2 border-tv-purple-deep bg-tv-purple-deep text-tv-cream-mint shadow-lg transition-colors hover:bg-tv-purple-dark md:h-14 md:w-14 ${
+        className={`absolute bottom-3 right-3 ${
+          isOpen ? "z-[60]" : "z-30"
+        } min-h-11 min-w-11 h-11 w-11 items-center justify-center rounded-full border-2 border-tv-purple-deep bg-tv-purple-deep text-tv-cream-mint shadow-lg transition-colors hover:bg-tv-purple-dark md:h-14 md:w-14 ${
           hideTriggerOnMobile ? "hidden md:flex" : "flex"
         } ${className}`.trim()}
       >

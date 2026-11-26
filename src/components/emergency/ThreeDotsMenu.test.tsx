@@ -55,12 +55,17 @@ describe("ThreeDotsMenu", () => {
 
     const backdrop = screen.getByTestId("three-dots-backdrop");
     expect(backdrop.className).toContain("backdrop-blur-md");
+    expect(backdrop.className).toContain("animate-tv-backdrop");
     expect(backdrop.className).toContain("bg-tv-purple-deep/45");
+    expect(backdrop.className).toContain("items-end");
+    expect(backdrop.className).toContain("justify-end");
+    expect(trigger.className).toContain("z-[60]");
 
     const dialog = screen.getByRole("dialog", {
       name: /menu de informações e denúncia/i,
     });
     expect(dialog).toHaveAttribute("aria-modal", "true");
+    expect(dialog.className).toContain("animate-tv-menu-grow");
 
     const buttons = within(dialog).getAllByRole("button");
     expect(buttons).toHaveLength(2);
@@ -77,6 +82,10 @@ describe("ThreeDotsMenu", () => {
     );
 
     fireEvent.click(screen.getByRole("button", { name: /sobre nós/i }));
+
+    const backdrop = screen.getByTestId("three-dots-backdrop");
+    expect(backdrop.className).toContain("items-center");
+    expect(backdrop.className).toContain("justify-center");
 
     const dialog = screen.getByRole("dialog");
     expect(dialog).toHaveTextContent(/tecendo vozes/i);

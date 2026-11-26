@@ -152,40 +152,26 @@ test.describe("Tecendo Vozes — WCAG 2.1 AA, Keyboard Navigation & Zero-Trackin
     const miniMap = page.getByTestId("pernambuco-minimap");
     await expect(miniMap).toBeVisible();
 
-    const emergencyBars = page.getByTestId("emergency-bar");
-    const emergencyBar = emergencyBars.last();
-    await expect(emergencyBar).toBeVisible();
-    await expect(emergencyBar).toContainText(EMERGENCY_DISCLAIMER);
-
-    for (const num of REQUIRED_TEL_NUMBERS) {
-      const link = emergencyBar.getByRole("link", { name: new RegExp(`ligar para ${num}`, "i") });
-      await expect(link).toHaveAttribute("href", `tel:${num}`);
-      await expectTouchTargetAtLeast44Px(link, `Emergency tel:${num}`);
-    }
-
-    const whatsappLink = emergencyBar.getByRole("link", { name: /whatsapp.*180/i });
-    await expect(whatsappLink).toHaveAttribute("href", "https://wa.me/556196100180");
-    await expectTouchTargetAtLeast44Px(whatsappLink, "WhatsApp 180");
+    await expect(page.getByTestId("emergency-bar")).toHaveCount(0);
+    await expect(page.getByText(/locais encontrados/i)).toHaveCount(0);
+    await expect(page.getByRole("button", { name: /visão em lista/i })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: /voltar ao centro/i })).toHaveCount(0);
 
     await expectTouchTargetAtLeast44Px(
       page.getByRole("searchbox", { name: /buscar locais por nome/i }),
       "Search input",
     );
     await expectTouchTargetAtLeast44Px(
-      page.getByRole("button", { name: "Visão em Lista", exact: true }),
-      "List view toggle",
-    );
-    await expectTouchTargetAtLeast44Px(
       page.getByTestId("three-dots-trigger"),
       "Three dots menu trigger",
     );
     await expectTouchTargetAtLeast44Px(
-      page.getByRole("button", { name: /voltar ao centro de belo jardim/i }),
-      "Recenter map button",
-    );
-    await expectTouchTargetAtLeast44Px(
       page.getByRole("button", { name: /minha localização aproximada/i }),
       "Geolocation button",
+    );
+    await expectTouchTargetAtLeast44Px(
+      page.getByTestId("map-theme-switch"),
+      "Map theme switch",
     );
 
     const categoryGroup = page.getByRole("group", { name: /filtrar por categoria/i });
@@ -195,9 +181,27 @@ test.describe("Tecendo Vozes — WCAG 2.1 AA, Keyboard Navigation & Zero-Trackin
     for (let i = 0; i < categoryCount; i += 1) {
       await expectTouchTargetAtLeast44Px(categoryButtons.nth(i), `Category chip ${i + 1}`);
     }
+
+    // Emergency tel: links, WhatsApp 180, and disclaimer remain accessible via ThreeDotsMenu -> Denuncie
+    await page.getByTestId("three-dots-trigger").click();
+    await page.getByRole("button", { name: /denuncie/i }).click();
+    const reportDialog = page.getByRole("dialog", { name: /menu de informações e denúncia/i });
+    await expect(reportDialog).toContainText(EMERGENCY_DISCLAIMER);
+
+    for (const num of REQUIRED_TEL_NUMBERS) {
+      const link = reportDialog.getByRole("link", { name: new RegExp(`ligar para ${num}`, "i") });
+      await expect(link).toHaveAttribute("href", `tel:${num}`);
+      await expectTouchTargetAtLeast44Px(link, `Emergency tel:${num}`);
+    }
+
+    const whatsappLink = reportDialog.getByRole("link", { name: /whatsapp.*180/i });
+    await expect(whatsappLink).toHaveAttribute("href", "https://wa.me/556196100180");
+    await expectTouchTargetAtLeast44Px(whatsappLink, "WhatsApp 180");
+    await page.keyboard.press("Escape");
+    await expect(reportDialog).toBeHidden();
   });
 
-  test("full keyboard navigation across search, category chips, List View, PlacePreview, PlaceDetailsModal, and ThreeDotsMenu", async ({
+  test("full keyboard navigation across search, category chips, map markers, PlacePreview, PlaceDetailsModal, and ThreeDotsMenu", async ({
     page,
   }) => {
     await page.goto("/");
@@ -220,24 +224,20 @@ test.describe("Tecendo Vozes — WCAG 2.1 AA, Keyboard Navigation & Zero-Trackin
     await expect(searchInput).toHaveValue("");
 
     // Toggle category chip with keyboard
-    const saudeChip = page.getByRole("button", { name: "Saúde" });
+    const saudeChip = page
+      .getByRole("group", { name: /filtrar por categoria/i })
+      .getByRole("button", { name: "Saúde", exact: true });
     await saudeChip.focus();
     await page.keyboard.press("Enter");
     await expect(saudeChip).toHaveAttribute("aria-pressed", "true");
     await page.keyboard.press("Enter");
     await expect(saudeChip).toHaveAttribute("aria-pressed", "false");
 
-    // Toggle to Accessible List View via keyboard
-    const listToggle = page.getByRole("button", { name: "Visão em Lista", exact: true });
-    await listToggle.focus();
-    await page.keyboard.press("Enter");
-    await expect(page.getByRole("main")).toHaveAttribute("data-view-mode", "list");
-
-    // Open PlacePreview from List View via keyboard Enter
-    const ubsButton = page.getByRole("button", {
-      name: /ver detalhes de UBS Centro — Espaço Saúde da Mulher/i,
-    });
-    await ubsButton.focus();
+    // Filter to uncluster UBS Centro marker and open PlacePreview via keyboard Enter
+    await searchInput.fill("UBS Centro");
+    const ubsMarker = page.getByTestId("map-marker-ubs-centro-saude-mulher");
+    await expect(ubsMarker).toBeVisible({ timeout: 10000 });
+    await ubsMarker.focus();
     await page.keyboard.press("Enter");
 
     const preview = page.getByRole("region", {
@@ -246,8 +246,9 @@ test.describe("Tecendo Vozes — WCAG 2.1 AA, Keyboard Navigation & Zero-Trackin
     await expect(preview).toBeVisible();
     await expect(preview.getByRole("link", { name: /como chegar/i })).toHaveCount(0);
 
-    // Open PlaceDetailsModal via keyboard Enter
-    const openDetailsBtn = preview.getByRole("button", { name: /ver detalhes/i });
+    // Open PlaceDetailsModal via keyboard Enter on "Conhecer mais"
+    await expect(preview.getByTestId("place-preview-image")).toBeVisible();
+    const openDetailsBtn = preview.getByRole("button", { name: /conhecer mais/i });
     await openDetailsBtn.focus();
     await page.keyboard.press("Enter");
 
@@ -269,8 +270,7 @@ test.describe("Tecendo Vozes — WCAG 2.1 AA, Keyboard Navigation & Zero-Trackin
     await page.keyboard.press("Escape");
     await expect(preview).toBeHidden();
 
-    // Return to Map View and test ThreeDotsMenu (backdrop blur + exact 2 buttons)
-    await page.getByRole("button", { name: /ver no mapa/i }).click();
+    // Test ThreeDotsMenu (backdrop blur + exact 2 buttons)
     const threeDotsTrigger = page.getByTestId("three-dots-trigger");
     await threeDotsTrigger.focus();
     await page.keyboard.press("Enter");
@@ -318,14 +318,16 @@ test.describe("Tecendo Vozes — WCAG 2.1 AA, Keyboard Navigation & Zero-Trackin
     await expect(page.getByTestId("emergency-bar")).toHaveCount(1);
     await expectZeroClientStorageAndCookies(page, "initial load");
 
-    // Start recording strictly during client-side search, category filters & view toggle
+    // Start recording strictly during client-side search & category filters
     recordingFilterPhase = true;
     const searchInput = page.getByRole("searchbox", { name: /buscar locais por nome/i });
     await searchInput.fill("serra do vento");
-    await page.getByRole("button", { name: "Apoio público" }).click();
-    await page.getByRole("button", { name: "Visão em Lista", exact: true }).click();
+    const apoioChip = page
+      .getByRole("group", { name: /filtrar por categoria/i })
+      .getByRole("button", { name: "Apoio público", exact: true });
+    await apoioChip.click();
     await page.getByRole("button", { name: /limpar busca/i }).click();
-    await page.getByRole("button", { name: "Apoio público" }).click();
+    await apoioChip.click();
     recordingFilterPhase = false;
 
     expect(
@@ -355,7 +357,7 @@ test.describe("Tecendo Vozes — WCAG 2.1 AA, Keyboard Navigation & Zero-Trackin
     await expectTouchTargetAtLeast44Px(privacyMenuLink, "Menu link to /privacidade");
     await privacyMenuLink.click();
 
-    await expect(page).toHaveURL(/\/privacidade$/);
+    await expect(page).toHaveURL(/\/privacidade$/, { timeout: 10000 });
     const privMain = page.getByRole("main");
     await expect(privMain.getByRole("heading", { level: 1 })).toContainText(
       /política de privacidade/i,
@@ -380,7 +382,7 @@ test.describe("Tecendo Vozes — WCAG 2.1 AA, Keyboard Navigation & Zero-Trackin
     await expectTouchTargetAtLeast44Px(termsFooterLink, "Privacy footer link to /termos");
     await termsFooterLink.click();
 
-    await expect(page).toHaveURL(/\/termos$/);
+    await expect(page).toHaveURL(/\/termos$/, { timeout: 10000 });
     const termsMain = page.getByRole("main");
     await expect(termsMain.getByRole("heading", { level: 1 })).toContainText(/termos de uso/i);
     await expect(termsMain).toContainText(/não é um canal oficial/i);
@@ -397,19 +399,9 @@ test.describe("Tecendo Vozes — WCAG 2.1 AA, Keyboard Navigation & Zero-Trackin
     }
     await expectZeroClientStorageAndCookies(page, "/termos");
 
-    // 3) Return to / and verify List View footer links to /privacidade and /termos
+    // 3) Return to / via footer link
     await page.getByRole("contentinfo").getByRole("link", { name: /voltar ao mapa/i }).click();
-    await expect(page).toHaveURL(/\/$/);
-
-    await page.getByRole("button", { name: "Visão em Lista", exact: true }).click();
-    const listLegalNav = page.getByRole("navigation", { name: /links legais/i });
-    const listPrivacyLink = listLegalNav.getByRole("link", { name: /política de privacidade/i });
-    const listTermsLink = listLegalNav.getByRole("link", { name: /termos de uso/i });
-    await listPrivacyLink.scrollIntoViewIfNeeded();
-    await expectTouchTargetAtLeast44Px(listPrivacyLink, "List footer /privacidade");
-    await expectTouchTargetAtLeast44Px(listTermsLink, "List footer /termos");
-    await expect(listPrivacyLink).toHaveAttribute("href", "/privacidade");
-    await expect(listTermsLink).toHaveAttribute("href", "/termos");
+    await expect(page).toHaveURL(/\/$/, { timeout: 10000 });
   });
 
   test("verifies computed WCAG 2.1 AA contrast (>= 4.5:1) across /, /privacidade, and /termos", async ({
@@ -421,14 +413,6 @@ test.describe("Tecendo Vozes — WCAG 2.1 AA, Keyboard Navigation & Zero-Trackin
       page.getByRole("searchbox", { name: /buscar locais por nome/i }),
       "Home search input",
     );
-    await expectContrastAtLeast(
-      page.getByRole("button", { name: "Visão em Lista", exact: true }),
-      "Home list view toggle",
-    );
-    await expectContrastAtLeast(
-      page.getByTestId("emergency-bar").last().locator("p").first(),
-      "Home emergency disclaimer",
-    );
 
     const categoryGroup = page.getByRole("group", { name: /filtrar por categoria/i });
     const categoryButtons = categoryGroup.getByRole("button");
@@ -436,12 +420,6 @@ test.describe("Tecendo Vozes — WCAG 2.1 AA, Keyboard Navigation & Zero-Trackin
     for (let i = 0; i < count; i += 1) {
       await expectContrastAtLeast(categoryButtons.nth(i), `Category chip ${i + 1}`);
     }
-
-    // Verify primary text and headings in List View
-    await page.getByRole("button", { name: "Visão em Lista", exact: true }).click();
-    const firstCard = page.getByRole("list", { name: /lista de locais/i }).getByRole("listitem").first();
-    await expectContrastAtLeast(firstCard.locator("h2"), "List View place heading");
-    await expectContrastAtLeast(firstCard.locator("p").first(), "List View place description");
 
     // Verify /privacidade computed contrast
     await page.goto("/privacidade");
@@ -488,31 +466,35 @@ test.describe("Tecendo Vozes — WCAG 2.1 AA, Keyboard Navigation & Zero-Trackin
     await page.goto("/");
 
     const searchRegion = page.getByRole("search", { name: /busca e filtros de locais/i });
-    const recenterBtn = page.getByRole("button", { name: /voltar ao centro de belo jardim/i });
     const geoBtn = page.getByRole("button", { name: /minha localização aproximada/i });
+    const themeSwitch = page.getByTestId("map-theme-switch");
     const miniMap = page.getByTestId("pernambuco-minimap");
     const threeDotsTrigger = page.getByTestId("three-dots-trigger");
 
-    // SearchAndFilters must never overlap map action buttons on either mobile or desktop
-    await expectNonOverlapping(searchRegion, "SearchAndFilters", recenterBtn, "Recenter button");
+    // SearchAndFilters must never overlap map controls on either mobile or desktop
     await expectNonOverlapping(searchRegion, "SearchAndFilters", geoBtn, "Geolocation button");
+    await expectNonOverlapping(searchRegion, "SearchAndFilters", themeSwitch, "Map theme switch");
 
-    // Select a place via List View then switch back to Map View with PlacePreview open
-    await page.getByRole("button", { name: "Visão em Lista", exact: true }).click();
-    await page
-      .getByRole("button", {
-        name: /ver detalhes de UBS Centro — Espaço Saúde da Mulher/i,
-      })
-      .click();
+    // Toggle Original <-> Rosa map theme switch without storage writes
+    await expect(themeSwitch).toHaveAttribute("aria-checked", "false");
+    await themeSwitch.click();
+    await expect(themeSwitch).toHaveAttribute("aria-checked", "true");
+    await themeSwitch.click();
+    await expect(themeSwitch).toHaveAttribute("aria-checked", "false");
+    await expectZeroClientStorageAndCookies(page, "after map theme switch");
+
+    // Search for UBS Centro to uncluster its marker, open PlacePreview, then clear search
+    const searchInput = page.getByRole("searchbox", { name: /buscar locais por nome/i });
+    await searchInput.fill("UBS Centro");
+    const ubsMarker = page.getByTestId("map-marker-ubs-centro-saude-mulher");
+    await expect(ubsMarker).toBeVisible({ timeout: 10000 });
+    await ubsMarker.click();
 
     const preview = page.getByRole("region", {
       name: /pré-visualização de UBS Centro — Espaço Saúde da Mulher/i,
     });
     await expect(preview).toBeVisible();
-
-    await page.getByRole("button", { name: /ver no mapa/i }).click();
-    await expect(page.getByRole("main")).toHaveAttribute("data-view-mode", "map");
-    await expect(preview).toBeVisible();
+    await page.getByRole("button", { name: /limpar busca/i }).click();
 
     if (testInfo.project.name === "mobile") {
       // Mobile (390x844): Bottom Sheet hides PernambucoMiniMap and ThreeDotsMenu trigger
@@ -520,17 +502,38 @@ test.describe("Tecendo Vozes — WCAG 2.1 AA, Keyboard Navigation & Zero-Trackin
       await expect(threeDotsTrigger).toBeHidden();
       await expectNonOverlapping(searchRegion, "SearchAndFilters", preview, "Mobile PlacePreview");
     } else {
-      // Desktop (1280x800): SearchAndFilters, PlacePreview (left side panel), and PernambucoMiniMap
-      // stay simultaneously visible with zero bounding-box overlap
+      // Desktop (1280x800): filters strip sits beside search bar on top row (scrollbar hidden),
+      // and ~1/3 left PlacePreview, SearchAndFilters, PernambucoMiniMap, and geolocation button stay non-overlapping
+      const categoryGroup = page.getByRole("group", { name: /filtrar por categoria/i });
+      const searchBox = await searchRegion.boundingBox();
+      const categoryGroupBox = await categoryGroup.boundingBox();
+      expect(searchBox).not.toBeNull();
+      expect(categoryGroupBox).not.toBeNull();
+      expect(categoryGroupBox!.x).toBeGreaterThanOrEqual(searchBox!.x + searchBox!.width - 1);
+
+      const previewBox = await preview.boundingBox();
+      expect(previewBox).not.toBeNull();
+      expect(previewBox!.width).toBeGreaterThanOrEqual(340);
+      expect(previewBox!.width).toBeLessThanOrEqual(440);
+
       await expectNonOverlapping(searchRegion, "SearchAndFilters", preview, "Desktop PlacePreview");
+      await expectNonOverlapping(categoryGroup, "Category chips", geoBtn, "Geolocation button");
       await expectNonOverlapping(preview, "Desktop PlacePreview", miniMap, "PernambucoMiniMap");
       await expectNonOverlapping(searchRegion, "SearchAndFilters", miniMap, "PernambucoMiniMap");
 
-      // Layered Escape: opening ThreeDotsMenu over PlacePreview -> 1st Escape closes ONLY menu,
-      // keeping PlacePreview open until 2nd Escape
+      // Layered Escape + bottom-right anchored ThreeDotsMenu above and slightly left of "..." trigger
       await threeDotsTrigger.click();
       const menuDialog = page.getByRole("dialog", { name: /menu de informações e denúncia/i });
       await expect(menuDialog).toBeVisible();
+
+      const triggerBox = await threeDotsTrigger.boundingBox();
+      const menuBox = await menuDialog.boundingBox();
+      expect(triggerBox).not.toBeNull();
+      expect(menuBox).not.toBeNull();
+      expect(menuBox!.y + menuBox!.height).toBeLessThanOrEqual(triggerBox!.y + 4);
+      expect(menuBox!.x + menuBox!.width).toBeLessThanOrEqual(
+        triggerBox!.x + triggerBox!.width,
+      );
 
       await page.keyboard.press("Escape");
       await expect(menuDialog).toBeHidden();

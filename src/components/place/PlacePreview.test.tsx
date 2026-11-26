@@ -13,14 +13,23 @@ const VERIFIED_PLACE: Local = {
   distrito: "Sede",
   endereco: "Rua Coronel Antônio Marinho, 145, Centro, Belo Jardim - PE",
   coordinates: [-36.424, -8.3358],
+  horarioFuncionamento: "Segunda a sexta, 07h30 às 16h30",
   verificado: true,
   dataVerificacao: "2026-10-18",
+  midia: {
+    fotos: [
+      {
+        url: "https://example.com/ubs-centro.jpg",
+        alt: "Fachada da UBS Centro",
+      },
+    ],
+  },
 };
 
 afterEach(cleanup);
 
 describe("PlacePreview", () => {
-  it("renders unified responsive preview content with category badge, verification, details action (without duplicate Como chegar), and >=44px close button", () => {
+  it("renders Google Maps-style ~1/3 desktop panel / mobile bottom sheet with hero image, description, location, Conhecer mais, and >=44px close button", () => {
     render(
       <PlacePreview
         place={VERIFIED_PLACE}
@@ -34,14 +43,19 @@ describe("PlacePreview", () => {
     });
     expect(preview).toBeInTheDocument();
 
-    // Responsive presentation classes: mobile Bottom Sheet (~1/3) + desktop Left Side Panel (~1/4 in left column)
-    expect(preview.className).toContain("max-md:h-[34dvh]");
+    // Responsive presentation classes & entrance animation
+    expect(preview.className).toContain("animate-tv-place-panel");
+    expect(preview.className).toContain("max-md:max-h-[48dvh]");
     expect(preview.className).toContain("max-md:bottom-0");
     expect(preview.className).toContain("md:relative");
-    expect(preview.className).toContain("md:w-[25vw]");
+    expect(preview.className).toContain("md:w-[32vw]");
     expect(preview.className).toContain("md:z-40");
 
-    // Core content rendered once (same DOM in mobile and desktop)
+    // Hero image + core content rendered once (same DOM in mobile and desktop)
+    const heroImage = screen.getByTestId("place-preview-image");
+    expect(heroImage).toHaveAttribute("src", "https://example.com/ubs-centro.jpg");
+    expect(heroImage).toHaveAttribute("alt", "Fachada da UBS Centro");
+
     expect(
       screen.getByRole("heading", { level: 2, name: VERIFIED_PLACE.nome }),
     ).toBeInTheDocument();
@@ -50,8 +64,9 @@ describe("PlacePreview", () => {
     expect(screen.getByText(VERIFIED_PLACE.descricaoCurta)).toBeInTheDocument();
     expect(screen.getByText(/Sede/)).toBeInTheDocument();
     expect(screen.getByText(/Rua Coronel Antônio Marinho, 145/)).toBeInTheDocument();
+    expect(screen.getByText(VERIFIED_PLACE.horarioFuncionamento!)).toBeInTheDocument();
 
-    const detailsButton = screen.getByRole("button", { name: /ver detalhes/i });
+    const detailsButton = screen.getByRole("button", { name: /conhecer mais/i });
     expect(detailsButton.className).toContain("min-h-11");
 
     // "Como chegar" belongs strictly to PlaceDetailsModal (no duplicate route link in preview)
@@ -64,7 +79,7 @@ describe("PlacePreview", () => {
     expect(closeButton.className).toContain("min-w-11");
   });
 
-  it("shows unverified status and triggers onOpenDetails and onClose from buttons and Escape", () => {
+  it("shows graceful photo placeholder, unverified status, and triggers onOpenDetails and onClose from buttons and Escape", () => {
     const onClose = vi.fn();
     const onOpenDetails = vi.fn();
     const unverifiedPlace: Local = {
@@ -74,6 +89,8 @@ describe("PlacePreview", () => {
       categoria: "arte-cultura",
       verificado: false,
       dataVerificacao: undefined,
+      horarioFuncionamento: undefined,
+      midia: undefined,
     };
 
     render(
@@ -84,9 +101,11 @@ describe("PlacePreview", () => {
       />,
     );
 
+    expect(screen.queryByTestId("place-preview-image")).not.toBeInTheDocument();
+    expect(screen.getByTestId("place-preview-image-placeholder")).toBeInTheDocument();
     expect(screen.getByText(/aguardando verificação/i)).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: /ver detalhes/i }));
+    fireEvent.click(screen.getByRole("button", { name: /conhecer mais/i }));
     expect(onOpenDetails).toHaveBeenCalledWith(unverifiedPlace);
 
     fireEvent.click(

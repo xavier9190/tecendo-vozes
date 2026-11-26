@@ -1,10 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
-import { EmergencyBar } from "@/components/emergency/EmergencyBar";
 import { MapOfflineFallback } from "@/components/emergency/MapOfflineFallback";
 import { ThreeDotsMenu } from "@/components/emergency/ThreeDotsMenu";
-import { AccessibleListView } from "@/components/list/AccessibleListView";
 import { PlaceDetailsModal } from "@/components/place/PlaceDetailsModal";
 import { PlacePreview } from "@/components/place/PlacePreview";
 import { SearchAndFilters } from "@/components/search/SearchAndFilters";
@@ -25,8 +23,6 @@ export interface MapShellSlotContext {
   setSelectedPlace: (place: Local | null) => void;
   viewport: MapViewport;
   mapError: string | null;
-  viewMode: "map" | "list";
-  setViewMode: (mode: "map" | "list") => void;
   isMenuOpen: boolean;
   setIsMenuOpen: (open: boolean) => void;
 }
@@ -57,7 +53,6 @@ export function MapShell({
   const [detailsPlaceId, setDetailsPlaceId] = useState<string | null>(null);
   const [viewport, setViewport] = useState<MapViewport>(INITIAL_VIEWPORT);
   const [mapError, setMapError] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<"map" | "list">("map");
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
   const [query, setQuery] = useState<string>("");
   const [selectedCategories, setSelectedCategories] = useState<Set<CategoryId>>(
@@ -86,11 +81,6 @@ export function MapShell({
       }
       return next;
     });
-  };
-
-  const handleClearFilters = () => {
-    setQuery("");
-    setSelectedCategories(new Set());
   };
 
   // Single centralized Escape handler closing strictly one layer at a time:
@@ -126,14 +116,11 @@ export function MapShell({
     setSelectedPlace,
     viewport,
     mapError,
-    viewMode,
-    setViewMode,
     isMenuOpen,
     setIsMenuOpen,
   };
 
   const hideMobileCornerOverlays = Boolean(selectedPlace) || isMenuOpen;
-  const showOfflineFallback = Boolean(mapError) && viewMode === "map";
 
   const searchAndFilters = (
     <SearchAndFilters
@@ -141,10 +128,6 @@ export function MapShell({
       onQueryChange={setQuery}
       selectedCategories={selectedCategories}
       onToggleCategory={handleToggleCategory}
-      viewMode={viewMode}
-      onViewModeChange={setViewMode}
-      resultCount={filteredPlaces.length}
-      totalCount={places.length}
     />
   );
 
@@ -152,6 +135,7 @@ export function MapShell({
     renderPlaceDetailsSlot(slotContext)
   ) : selectedPlace ? (
     <PlacePreview
+      key={selectedPlace.id}
       place={selectedPlace}
       onClose={() => setSelectedPlace(null)}
       onOpenDetails={(place) => setDetailsPlaceId(place.id)}
@@ -162,7 +146,6 @@ export function MapShell({
   return (
     <main
       id="conteudo-principal"
-      data-view-mode={viewMode}
       data-map-error={mapError ? "true" : "false"}
       className="relative h-dvh w-full overflow-hidden bg-tv-cream-warm text-tv-purple-deep"
     >
@@ -170,11 +153,11 @@ export function MapShell({
         Tecendo Vozes — Mapa Local para Mulheres em Belo Jardim – PE
       </h1>
 
-      {/* Interactive Map Layer (blurred when #7 Three Dots menu is open) */}
+      {/* Interactive Map Layer (gradually blurred when Three Dots menu is open) */}
       <div
-        className={`h-full w-full transition-all ${
+        className={`h-full w-full transition-all duration-300 ease-out ${
           isMenuOpen ? "pointer-events-none blur-sm" : ""
-        } ${viewMode === "list" ? "hidden" : "block"}`}
+        }`}
       >
         <BeloJardimMap
           places={filteredPlaces}
@@ -185,49 +168,26 @@ export function MapShell({
         />
       </div>
 
-      {/* Shared Left Column in Map View (SearchAndFilters -> PlacePreview -> PernambucoMiniMap) or Accessible List View */}
-      {viewMode === "list" ? (
-        renderSearchAndListSlot ? (
-          renderSearchAndListSlot(slotContext)
-        ) : (
-          <div
-            className={`relative z-20 flex h-full w-full flex-col bg-tv-cream-warm transition-all ${
-              isMenuOpen ? "pointer-events-none blur-sm" : ""
-            }`}
-          >
-            {searchAndFilters}
-            <div className="relative flex min-h-0 flex-1">
-              {placePreviewNode ? (
-                <div className="pointer-events-none shrink-0 md:p-4 md:pr-0">
-                  {placePreviewNode}
-                </div>
-              ) : null}
-              <AccessibleListView
-                places={filteredPlaces}
-                selectedPlaceId={selectedPlace?.id ?? null}
-                onSelectPlace={setSelectedPlace}
-                onClearFilters={handleClearFilters}
-              />
-            </div>
-          </div>
-        )
-      ) : (
-        <div className="pointer-events-none absolute inset-y-0 left-0 right-0 flex flex-col gap-3 p-3 md:right-auto md:w-[27rem] md:p-4">
-          {renderSearchAndListSlot ? renderSearchAndListSlot(slotContext) : searchAndFilters}
+      {/* Shared Left Column (SearchAndFilters -> PlacePreview -> PernambucoMiniMap) */}
+      <div className="pointer-events-none absolute inset-y-0 left-0 right-0 flex flex-col gap-3 p-3 md:right-auto md:w-[calc(clamp(340px,32vw,420px)+2rem)] md:p-4">
+        {renderSearchAndListSlot ? renderSearchAndListSlot(slotContext) : searchAndFilters}
 
-          <div className="pointer-events-none flex min-h-0 flex-1 flex-col items-start">
-            {placePreviewNode}
-          </div>
-
-          <div
-            className={`pointer-events-none relative z-20 shrink-0 self-start ${
-              hideMobileCornerOverlays ? "hidden md:block" : "block"
-            }`}
-          >
-            <PernambucoMiniMap center={viewport.center} />
-          </div>
+        <div className="pointer-events-none flex min-h-0 flex-1 flex-col items-start">
+          {placePreviewNode}
         </div>
-      )}
+
+        <div
+          className={`pointer-events-none z-20 shrink-0 self-start ${
+            hideMobileCornerOverlays ? "hidden md:block" : "block"
+          } ${
+            selectedPlace
+              ? "md:fixed md:bottom-3 md:left-[calc(clamp(340px,32vw,420px)+2rem)]"
+              : "relative"
+          }`}
+        >
+          <PernambucoMiniMap center={viewport.center} />
+        </div>
+      </div>
 
       {/* Full Details Dialog rendered at top level so z-50 is never trapped by sibling stacking contexts */}
       {!renderPlaceDetailsSlot && selectedPlace ? (
@@ -239,22 +199,12 @@ export function MapShell({
         />
       ) : null}
 
-      {/* Slot #7: Bottom-right Three Dots Menu (with backdrop blur) & Permanent Emergency Layer */}
+      {/* Bottom-right Three Dots Menu (with backdrop blur) & Offline Fallback */}
       {renderEmergencyMenuSlot ? (
         renderEmergencyMenuSlot(slotContext)
       ) : (
         <>
-          {showOfflineFallback ? (
-            <MapOfflineFallback
-              errorMessage={mapError}
-              onSwitchToList={() => setViewMode("list")}
-            />
-          ) : (
-            <EmergencyBar
-              variant="floating"
-              isPlaceSelected={Boolean(selectedPlace)}
-            />
-          )}
+          {mapError ? <MapOfflineFallback errorMessage={mapError} /> : null}
           <ThreeDotsMenu
             isOpen={isMenuOpen}
             onOpenChange={setIsMenuOpen}
