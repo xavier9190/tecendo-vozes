@@ -145,6 +145,7 @@ export function MapShell({
       onViewModeChange={setViewMode}
       resultCount={filteredPlaces.length}
       totalCount={places.length}
+      isPlaceSelected={Boolean(selectedPlace)}
     />
   );
 
@@ -212,7 +213,13 @@ export function MapShell({
           </div>
         )
       ) : (
-        <div className="pointer-events-none absolute inset-y-0 left-0 right-0 flex flex-col gap-3 p-3 md:right-auto md:w-[27rem] md:p-4">
+        <div
+          className={`pointer-events-none absolute inset-y-0 left-0 right-0 flex flex-col gap-3 p-3 md:right-auto md:p-4 ${
+            selectedPlace
+              ? "md:w-[calc(clamp(340px,32vw,420px)+2rem)]"
+              : "md:w-[27rem]"
+          }`}
+        >
           {renderSearchAndListSlot ? renderSearchAndListSlot(slotContext) : searchAndFilters}
 
           <div className="pointer-events-none flex min-h-0 flex-1 flex-col items-start">
@@ -220,8 +227,12 @@ export function MapShell({
           </div>
 
           <div
-            className={`pointer-events-none relative z-20 shrink-0 self-start ${
+            className={`pointer-events-none z-20 shrink-0 self-start ${
               hideMobileCornerOverlays ? "hidden md:block" : "block"
+            } ${
+              selectedPlace
+                ? "md:fixed md:bottom-3 md:left-[calc(clamp(340px,32vw,420px)+2rem)]"
+                : "relative"
             }`}
           >
             <PernambucoMiniMap center={viewport.center} />

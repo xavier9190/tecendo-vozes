@@ -22,8 +22,10 @@ export function EmergencyBar({
 
   const positioningClasses = isFloating
     ? `pointer-events-auto absolute z-20 ${
-        isPlaceSelected ? "bottom-[calc(34dvh+0.5rem)]" : "bottom-[6.75rem]"
-      } left-3 right-3 md:bottom-8 md:left-1/2 md:right-auto md:w-auto md:max-w-xl md:-translate-x-1/2`
+        isPlaceSelected
+          ? "bottom-[calc(48dvh+0.5rem)] left-3 right-3 md:bottom-8 md:left-auto md:right-20 md:w-auto md:max-w-lg md:translate-x-0"
+          : "bottom-[6.75rem] left-3 right-3 md:bottom-8 md:left-1/2 md:right-auto md:w-auto md:max-w-xl md:-translate-x-1/2"
+      }`
     : "w-full";
 
   const containerClasses = isFloating

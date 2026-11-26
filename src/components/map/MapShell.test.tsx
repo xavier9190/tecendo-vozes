@@ -227,14 +227,14 @@ describe("MapShell integration", () => {
       }),
     ).toBeInTheDocument();
 
-    // Open PlaceDetailsModal via "Ver detalhes"
-    const detailsBtn = screen.getByRole("button", { name: /ver detalhes/i });
+    // Open PlaceDetailsModal via "Conhecer mais"
+    const detailsBtn = screen.getByRole("button", { name: /conhecer mais/i });
     detailsBtn.focus();
     fireEvent.click(detailsBtn);
 
     expect(screen.getByRole("dialog")).toBeInTheDocument();
 
-    // First Escape closes only PlaceDetailsModal, keeping PlacePreview open and restoring focus to "Ver detalhes"
+    // First Escape closes only PlaceDetailsModal, keeping PlacePreview open and restoring focus to "Conhecer mais"
     fireEvent.keyDown(window, { key: "Escape" });
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     expect(
@@ -242,7 +242,7 @@ describe("MapShell integration", () => {
         name: /pré-visualização de ubs centro/i,
       }),
     ).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /ver detalhes/i })).toHaveFocus();
+    expect(screen.getByRole("button", { name: /conhecer mais/i })).toHaveFocus();
 
     // Second Escape closes PlacePreview and restores focus to marker
     fireEvent.keyDown(window, { key: "Escape" });

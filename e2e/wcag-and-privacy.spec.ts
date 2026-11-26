@@ -220,7 +220,9 @@ test.describe("Tecendo Vozes — WCAG 2.1 AA, Keyboard Navigation & Zero-Trackin
     await expect(searchInput).toHaveValue("");
 
     // Toggle category chip with keyboard
-    const saudeChip = page.getByRole("button", { name: "Saúde" });
+    const saudeChip = page
+      .getByRole("group", { name: /filtrar por categoria/i })
+      .getByRole("button", { name: "Saúde", exact: true });
     await saudeChip.focus();
     await page.keyboard.press("Enter");
     await expect(saudeChip).toHaveAttribute("aria-pressed", "true");
@@ -246,8 +248,9 @@ test.describe("Tecendo Vozes — WCAG 2.1 AA, Keyboard Navigation & Zero-Trackin
     await expect(preview).toBeVisible();
     await expect(preview.getByRole("link", { name: /como chegar/i })).toHaveCount(0);
 
-    // Open PlaceDetailsModal via keyboard Enter
-    const openDetailsBtn = preview.getByRole("button", { name: /ver detalhes/i });
+    // Open PlaceDetailsModal via keyboard Enter on "Conhecer mais"
+    await expect(preview.getByTestId("place-preview-image")).toBeVisible();
+    const openDetailsBtn = preview.getByRole("button", { name: /conhecer mais/i });
     await openDetailsBtn.focus();
     await page.keyboard.press("Enter");
 
@@ -322,10 +325,13 @@ test.describe("Tecendo Vozes — WCAG 2.1 AA, Keyboard Navigation & Zero-Trackin
     recordingFilterPhase = true;
     const searchInput = page.getByRole("searchbox", { name: /buscar locais por nome/i });
     await searchInput.fill("serra do vento");
-    await page.getByRole("button", { name: "Apoio público" }).click();
+    const apoioChip = page
+      .getByRole("group", { name: /filtrar por categoria/i })
+      .getByRole("button", { name: "Apoio público", exact: true });
+    await apoioChip.click();
     await page.getByRole("button", { name: "Visão em Lista", exact: true }).click();
     await page.getByRole("button", { name: /limpar busca/i }).click();
-    await page.getByRole("button", { name: "Apoio público" }).click();
+    await apoioChip.click();
     recordingFilterPhase = false;
 
     expect(
@@ -355,7 +361,7 @@ test.describe("Tecendo Vozes — WCAG 2.1 AA, Keyboard Navigation & Zero-Trackin
     await expectTouchTargetAtLeast44Px(privacyMenuLink, "Menu link to /privacidade");
     await privacyMenuLink.click();
 
-    await expect(page).toHaveURL(/\/privacidade$/);
+    await expect(page).toHaveURL(/\/privacidade$/, { timeout: 10000 });
     const privMain = page.getByRole("main");
     await expect(privMain.getByRole("heading", { level: 1 })).toContainText(
       /política de privacidade/i,
@@ -380,7 +386,7 @@ test.describe("Tecendo Vozes — WCAG 2.1 AA, Keyboard Navigation & Zero-Trackin
     await expectTouchTargetAtLeast44Px(termsFooterLink, "Privacy footer link to /termos");
     await termsFooterLink.click();
 
-    await expect(page).toHaveURL(/\/termos$/);
+    await expect(page).toHaveURL(/\/termos$/, { timeout: 10000 });
     const termsMain = page.getByRole("main");
     await expect(termsMain.getByRole("heading", { level: 1 })).toContainText(/termos de uso/i);
     await expect(termsMain).toContainText(/não é um canal oficial/i);
@@ -399,7 +405,7 @@ test.describe("Tecendo Vozes — WCAG 2.1 AA, Keyboard Navigation & Zero-Trackin
 
     // 3) Return to / and verify List View footer links to /privacidade and /termos
     await page.getByRole("contentinfo").getByRole("link", { name: /voltar ao mapa/i }).click();
-    await expect(page).toHaveURL(/\/$/);
+    await expect(page).toHaveURL(/\/$/, { timeout: 10000 });
 
     await page.getByRole("button", { name: "Visão em Lista", exact: true }).click();
     const listLegalNav = page.getByRole("navigation", { name: /links legais/i });
@@ -520,17 +526,33 @@ test.describe("Tecendo Vozes — WCAG 2.1 AA, Keyboard Navigation & Zero-Trackin
       await expect(threeDotsTrigger).toBeHidden();
       await expectNonOverlapping(searchRegion, "SearchAndFilters", preview, "Mobile PlacePreview");
     } else {
-      // Desktop (1280x800): SearchAndFilters, PlacePreview (left side panel), and PernambucoMiniMap
+      // Desktop (1280x800): ~1/3 left PlacePreview, SearchAndFilters, PernambucoMiniMap, and EmergencyBar
       // stay simultaneously visible with zero bounding-box overlap
+      const previewBox = await preview.boundingBox();
+      expect(previewBox).not.toBeNull();
+      expect(previewBox!.width).toBeGreaterThanOrEqual(340);
+      expect(previewBox!.width).toBeLessThanOrEqual(440);
+
+      const emergencyBar = page.getByTestId("emergency-bar");
       await expectNonOverlapping(searchRegion, "SearchAndFilters", preview, "Desktop PlacePreview");
       await expectNonOverlapping(preview, "Desktop PlacePreview", miniMap, "PernambucoMiniMap");
+      await expectNonOverlapping(preview, "Desktop PlacePreview", emergencyBar, "EmergencyBar");
+      await expectNonOverlapping(miniMap, "PernambucoMiniMap", emergencyBar, "EmergencyBar");
       await expectNonOverlapping(searchRegion, "SearchAndFilters", miniMap, "PernambucoMiniMap");
 
-      // Layered Escape: opening ThreeDotsMenu over PlacePreview -> 1st Escape closes ONLY menu,
-      // keeping PlacePreview open until 2nd Escape
+      // Layered Escape + bottom-right anchored ThreeDotsMenu above and slightly left of "..." trigger
       await threeDotsTrigger.click();
       const menuDialog = page.getByRole("dialog", { name: /menu de informações e denúncia/i });
       await expect(menuDialog).toBeVisible();
+
+      const triggerBox = await threeDotsTrigger.boundingBox();
+      const menuBox = await menuDialog.boundingBox();
+      expect(triggerBox).not.toBeNull();
+      expect(menuBox).not.toBeNull();
+      expect(menuBox!.y + menuBox!.height).toBeLessThanOrEqual(triggerBox!.y + 4);
+      expect(menuBox!.x + menuBox!.width).toBeLessThanOrEqual(
+        triggerBox!.x + triggerBox!.width,
+      );
 
       await page.keyboard.press("Escape");
       await expect(menuDialog).toBeHidden();

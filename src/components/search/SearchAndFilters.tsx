@@ -14,6 +14,7 @@ export interface SearchAndFiltersProps {
   onViewModeChange: (mode: "map" | "list") => void;
   resultCount: number;
   totalCount: number;
+  isPlaceSelected?: boolean;
 }
 
 export function SearchAndFilters({
@@ -25,6 +26,7 @@ export function SearchAndFilters({
   onViewModeChange,
   resultCount,
   totalCount,
+  isPlaceSelected = false,
 }: SearchAndFiltersProps) {
   const searchInputId = useId();
   const isListView = viewMode === "list";
@@ -43,7 +45,11 @@ export function SearchAndFilters({
     ? "relative z-30 w-full shrink-0 px-3 pt-3 md:px-6 md:pt-4"
     : "pointer-events-none relative z-30 w-full shrink-0";
 
-  const searchRowClearanceClasses = "w-full md:max-w-[27rem]";
+  const searchRowClearanceClasses = isListView
+    ? "w-full md:max-w-[27rem]"
+    : "w-full";
+
+  const shiftControlsAside = isPlaceSelected && !isListView;
 
   return (
     <div
@@ -86,42 +92,53 @@ export function SearchAndFilters({
         </div>
       </div>
 
-      {/* Map ↔ Accessible List View toggle and live result count */}
-      <div className="pointer-events-auto flex flex-wrap items-center gap-2">
-        <button
-          type="button"
-          onClick={() => onViewModeChange(isListView ? "map" : "list")}
-          aria-pressed={isListView}
-          className="inline-flex min-h-11 min-w-11 items-center gap-2 rounded-xl border-2 border-tv-purple-deep bg-tv-purple-deep px-3.5 py-2 text-sm font-bold text-tv-cream-mint shadow-md transition-colors hover:bg-tv-purple-dark"
-        >
-          {isListView ? (
-            <>
-              <MapIcon className="h-4 w-4 shrink-0" aria-hidden="true" />
-              <span>Ver no Mapa</span>
-            </>
-          ) : (
-            <>
-              <List className="h-4 w-4 shrink-0" aria-hidden="true" />
-              <span>Visão em Lista</span>
-            </>
-          )}
-        </button>
-
-        <p
-          role="status"
-          aria-live="polite"
-          className="rounded-lg border border-tv-lavender bg-tv-cream-mint/95 px-2.5 py-1.5 text-xs font-bold text-tv-purple-deep shadow-xs"
-        >
-          {fullCountAnnouncement}
-        </p>
-      </div>
-
-      {/* Multi-select category filter chips (horizontal scroll on mobile, wrapped on desktop) */}
+      {/* Map ↔ Accessible List View toggle, count, and category chips */}
       <div
-        role="group"
-        aria-label="Filtrar por categoria"
-        className="pointer-events-auto flex flex-nowrap items-center gap-1.5 overflow-x-auto pb-1 md:flex-wrap md:overflow-visible md:pb-0"
+        className={`flex flex-col gap-2 ${
+          shiftControlsAside
+            ? "md:fixed md:top-4 md:left-[calc(clamp(340px,32vw,420px)+2rem)] md:right-52 md:z-30 md:flex-row md:items-center md:gap-2"
+            : ""
+        }`}
       >
+        <div className="pointer-events-auto flex shrink-0 flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={() => onViewModeChange(isListView ? "map" : "list")}
+            aria-pressed={isListView}
+            className="inline-flex min-h-11 min-w-11 shrink-0 items-center gap-2 rounded-xl border-2 border-tv-purple-deep bg-tv-purple-deep px-3.5 py-2 text-sm font-bold text-tv-cream-mint shadow-md transition-colors hover:bg-tv-purple-dark"
+          >
+            {isListView ? (
+              <>
+                <MapIcon className="h-4 w-4 shrink-0" aria-hidden="true" />
+                <span>Ver no Mapa</span>
+              </>
+            ) : (
+              <>
+                <List className="h-4 w-4 shrink-0" aria-hidden="true" />
+                <span>Visão em Lista</span>
+              </>
+            )}
+          </button>
+
+          <p
+            role="status"
+            aria-live="polite"
+            className="shrink-0 rounded-lg border border-tv-lavender bg-tv-cream-mint/95 px-2.5 py-1.5 text-xs font-bold text-tv-purple-deep shadow-xs"
+          >
+            {fullCountAnnouncement}
+          </p>
+        </div>
+
+        {/* Multi-select category filter chips (horizontal scroll on mobile, wrapped on desktop) */}
+        <div
+          role="group"
+          aria-label="Filtrar por categoria"
+          className={`pointer-events-auto flex flex-nowrap items-center gap-1.5 overflow-x-auto pb-1 ${
+            shiftControlsAside
+              ? "md:min-w-0 md:flex-1 md:flex-nowrap md:overflow-x-auto md:pb-0"
+              : "md:flex-wrap md:overflow-visible md:pb-0"
+          }`}
+        >
         {CATEGORIES.map((category) => {
           const isSelected = selectedCategories.has(category.id);
           const CategoryIcon = category.icon;
@@ -157,6 +174,7 @@ export function SearchAndFilters({
             </button>
           );
         })}
+        </div>
       </div>
     </div>
   );
