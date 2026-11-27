@@ -3,7 +3,6 @@
 import { Search, X } from "lucide-react";
 import { useId } from "react";
 import { CATEGORIES, type CategoryId } from "@/lib/theme/categories";
-import { PALETTE_TOKENS } from "@/lib/theme/palette";
 
 export interface SearchAndFiltersProps {
   query: string;
@@ -28,12 +27,12 @@ export function SearchAndFilters({
     >
       {/* Top-left search bar alone in its row */}
       <div data-testid="search-bar-row" className="pointer-events-auto w-full">
-        <div className="relative flex min-h-11 items-center rounded-xl border-2 border-tv-purple-deep bg-tv-cream-mint/95 shadow-md focus-within:ring-2 focus-within:ring-tv-coral">
+        <div className="relative flex min-h-11 items-center rounded-full bg-[#ffffff] shadow-[0_2px_6px_rgba(0,0,0,0.16),0_1px_2px_rgba(0,0,0,0.08)] transition-shadow focus-within:shadow-[0_4px_12px_rgba(0,0,0,0.2)] focus-within:ring-2 focus-within:ring-[#dadce0]">
           <label htmlFor={searchInputId} className="sr-only">
             Buscar locais por nome
           </label>
           <Search
-            className="pointer-events-none ml-3 h-4 w-4 shrink-0 text-tv-purple-dark"
+            className="pointer-events-none ml-3.5 h-4 w-4 shrink-0 text-[#5f6368]"
             aria-hidden="true"
           />
           <input
@@ -43,14 +42,14 @@ export function SearchAndFilters({
             onChange={(event) => onQueryChange(event.target.value)}
             placeholder="Buscar local por nome..."
             autoComplete="off"
-            className="min-h-11 w-full bg-transparent px-2.5 py-2 text-sm font-medium text-tv-purple-deep placeholder:text-tv-purple-dark/75 focus:outline-none [&::-webkit-search-cancel-button]:appearance-none"
+            className="min-h-11 w-full bg-transparent px-2.5 py-2 text-sm font-normal text-[#202124] placeholder:text-[#5f6368] focus:outline-none [&::-webkit-search-cancel-button]:appearance-none"
           />
           {query.length > 0 ? (
             <button
               type="button"
               onClick={() => onQueryChange("")}
               aria-label="Limpar busca"
-              className="inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-r-lg text-tv-purple-deep transition-colors hover:bg-tv-cream-butter"
+              className="inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-r-full text-[#5f6368] transition-colors hover:bg-[#f1f3f4] hover:text-[#202124]"
             >
               <X className="h-4 w-4" aria-hidden="true" />
             </button>
@@ -63,7 +62,7 @@ export function SearchAndFilters({
         <div
           role="group"
           aria-label="Filtrar por categoria"
-          className="no-scrollbar pointer-events-auto flex flex-nowrap items-center gap-1.5 overflow-x-auto pb-1 md:pb-0"
+          className="no-scrollbar pointer-events-auto flex flex-nowrap items-center gap-1.5 overflow-x-auto pb-1.5"
         >
           {CATEGORIES.map((category) => {
             const isSelected = selectedCategories.has(category.id);
@@ -75,27 +74,13 @@ export function SearchAndFilters({
                 type="button"
                 onClick={() => onToggleCategory(category.id)}
                 aria-pressed={isSelected}
-                style={{
-                  borderColor: isSelected
-                    ? PALETTE_TOKENS.coral
-                    : category.borderColor,
-                }}
-                className={`inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full border-2 px-3 py-1.5 text-xs font-bold shadow-xs transition-colors ${
+                className={`inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full px-3.5 py-1.5 text-xs font-medium transition-colors ${
                   isSelected
-                    ? "bg-tv-purple-deep text-tv-cream-mint"
-                    : "bg-tv-cream-mint/95 text-tv-purple-deep hover:bg-tv-cream-butter"
+                    ? "bg-[#202124] text-[#ffffff] shadow-[0_2px_6px_rgba(0,0,0,0.22)] hover:bg-[#3c4043]"
+                    : "bg-[#ffffff] text-[#202124] shadow-[0_1px_3px_rgba(0,0,0,0.18),0_1px_2px_rgba(0,0,0,0.08)] hover:bg-[#f1f3f4]"
                 }`}
               >
-                <span
-                  aria-hidden="true"
-                  style={{
-                    backgroundColor: category.markerBg,
-                    color: category.markerIconColor,
-                  }}
-                  className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full"
-                >
-                  <CategoryIcon className="h-3.5 w-3.5" aria-hidden="true" />
-                </span>
+                <CategoryIcon className="h-4 w-4 shrink-0" aria-hidden="true" />
                 <span>{category.label}</span>
               </button>
             );

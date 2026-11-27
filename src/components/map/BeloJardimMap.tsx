@@ -622,9 +622,9 @@ export function BeloJardimMap({
           onClick={handleGeolocation}
           disabled={isLocating}
           aria-label="Minha localização aproximada no mapa"
-          className="pointer-events-auto inline-flex min-h-11 min-w-11 items-center gap-2 rounded-xl border-2 border-tv-purple-dark bg-tv-cream-mint/95 px-3 py-2 text-sm font-bold text-tv-purple-deep shadow-md transition-colors hover:bg-tv-cream-butter disabled:opacity-60"
+          className="pointer-events-auto inline-flex min-h-11 min-w-11 items-center gap-2 rounded-full bg-[#ffffff] px-3.5 py-2 text-sm font-medium text-[#202124] shadow-[0_2px_6px_rgba(0,0,0,0.16),0_1px_2px_rgba(0,0,0,0.08)] transition-colors hover:bg-[#f1f3f4] disabled:opacity-60"
         >
-          <LocateFixed className="h-4 w-4 shrink-0 text-tv-purple-dark" aria-hidden="true" />
+          <LocateFixed className="h-4 w-4 shrink-0 text-[#3c4043]" aria-hidden="true" />
           <span className="hidden sm:inline">
             {isLocating ? "Localizando..." : "Minha localização"}
           </span>
@@ -637,22 +637,22 @@ export function BeloJardimMap({
           aria-checked={mapTheme === "rosa"}
           aria-label="Alternar tema do mapa entre Original e Rosa"
           onClick={handleToggleTheme}
-          className="pointer-events-auto inline-flex min-h-11 min-w-11 items-center gap-1 rounded-xl border-2 border-tv-purple-deep bg-tv-cream-mint/95 p-1 text-xs font-bold shadow-md transition-colors hover:bg-tv-cream-butter"
+          className="pointer-events-auto inline-flex min-h-11 min-w-11 items-center gap-1 rounded-full bg-[#ffffff] p-1 text-xs font-medium shadow-[0_2px_6px_rgba(0,0,0,0.16),0_1px_2px_rgba(0,0,0,0.08)] transition-colors"
         >
           <span
-            className={`rounded-lg px-2.5 py-1.5 transition-colors ${
+            className={`rounded-full px-2.5 py-1.5 transition-colors ${
               mapTheme === "original"
-                ? "bg-tv-purple-deep text-tv-cream-mint"
-                : "text-tv-purple-deep"
+                ? "bg-[#202124] text-[#ffffff]"
+                : "text-[#3c4043] hover:bg-[#f1f3f4]"
             }`}
           >
             Original
           </span>
           <span
-            className={`rounded-lg px-2.5 py-1.5 transition-colors ${
+            className={`rounded-full px-2.5 py-1.5 transition-colors ${
               mapTheme === "rosa"
-                ? "bg-tv-purple-deep text-tv-cream-mint"
-                : "text-tv-purple-deep"
+                ? "bg-[#202124] text-[#ffffff]"
+                : "text-[#3c4043] hover:bg-[#f1f3f4]"
             }`}
           >
             Rosa
