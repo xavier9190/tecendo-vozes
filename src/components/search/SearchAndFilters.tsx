@@ -42,7 +42,7 @@ export function SearchAndFilters({
             onChange={(event) => onQueryChange(event.target.value)}
             placeholder="Buscar local por nome..."
             autoComplete="off"
-            className="min-h-11 w-full bg-transparent px-2.5 py-2 text-sm font-normal text-[#202124] placeholder:text-[#5f6368] focus:outline-none [&::-webkit-search-cancel-button]:appearance-none"
+            className="min-h-11 w-full bg-transparent px-2.5 py-2 text-sm font-normal text-[#202124] placeholder:text-[#5f6368] focus:outline-none focus-visible:outline-none [&::-webkit-search-cancel-button]:appearance-none"
           />
           {query.length > 0 ? (
             <button
