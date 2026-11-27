@@ -362,7 +362,7 @@ test.describe("Tecendo Vozes — WCAG 2.1 AA, Keyboard Navigation & Zero-Trackin
     await expect(privMain.getByRole("heading", { level: 1 })).toContainText(
       /política de privacidade/i,
     );
-    await expect(privMain).toContainText(/pedro xavier/i);
+    await expect(privMain).not.toContainText(/pedro xavier/i);
     await expect(privMain).toContainText(/vercel/i);
     await expect(privMain).toContainText(/youtube-nocookie\.com/i);
     await expect(privMain).toContainText(/aba anônima|navegação privada/i);
@@ -376,11 +376,15 @@ test.describe("Tecendo Vozes — WCAG 2.1 AA, Keyboard Navigation & Zero-Trackin
     }
     await expectZeroClientStorageAndCookies(page, "/privacidade");
 
-    // 2) Navigate from /privacidade to /termos via footer link
+    // 2) Footer has no navigation buttons; navigate from /privacidade to /termos via header link
     const privFooter = page.getByRole("contentinfo");
-    const termsFooterLink = privFooter.getByRole("link", { name: /termos de uso/i });
-    await expectTouchTargetAtLeast44Px(termsFooterLink, "Privacy footer link to /termos");
-    await termsFooterLink.click();
+    await expect(privFooter.getByRole("link")).toHaveCount(0);
+
+    const termsHeaderLink = page
+      .getByRole("banner")
+      .getByRole("link", { name: /termos de uso/i });
+    await expectTouchTargetAtLeast44Px(termsHeaderLink, "Privacy header link to /termos");
+    await termsHeaderLink.click();
 
     await expect(page).toHaveURL(/\/termos$/, { timeout: 10000 });
     const termsMain = page.getByRole("main");
@@ -388,7 +392,7 @@ test.describe("Tecendo Vozes — WCAG 2.1 AA, Keyboard Navigation & Zero-Trackin
     await expect(termsMain).toContainText(/não é um canal oficial/i);
     await expect(termsMain).toContainText(/autorizacoes\.json/i);
     await expect(termsMain).toContainText(/abrigos|casas de acolhimento/i);
-    await expect(termsMain).toContainText(/pedro xavier/i);
+    await expect(termsMain).not.toContainText(/pedro xavier/i);
 
     const termsEmergency = page.getByTestId("emergency-bar");
     await expect(termsEmergency).toContainText(EMERGENCY_DISCLAIMER);
@@ -399,8 +403,9 @@ test.describe("Tecendo Vozes — WCAG 2.1 AA, Keyboard Navigation & Zero-Trackin
     }
     await expectZeroClientStorageAndCookies(page, "/termos");
 
-    // 3) Return to / via footer link
-    await page.getByRole("contentinfo").getByRole("link", { name: /voltar ao mapa/i }).click();
+    // 3) Footer has no navigation buttons; return to / via header link
+    await expect(page.getByRole("contentinfo").getByRole("link")).toHaveCount(0);
+    await page.getByRole("banner").getByRole("link", { name: /voltar ao mapa/i }).click();
     await expect(page).toHaveURL(/\/$/, { timeout: 10000 });
   });
 

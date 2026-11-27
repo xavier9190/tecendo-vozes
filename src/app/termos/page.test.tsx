@@ -15,7 +15,7 @@ describe("Termos de Uso (/termos)", () => {
     expect(h1).toHaveTextContent(/termos de uso/i);
 
     const h2s = within(main).getAllByRole("heading", { level: 2 });
-    expect(h2s.length).toBeGreaterThanOrEqual(4);
+    expect(h2s.length).toBeGreaterThanOrEqual(3);
 
     const backLinks = screen.getAllByRole("link", { name: /voltar ao mapa/i });
     expect(backLinks.length).toBeGreaterThanOrEqual(1);
@@ -34,7 +34,7 @@ describe("Termos de Uso (/termos)", () => {
     }
   });
 
-  it("covers informative purpose in Belo Jardim, non-official character, LGPD authorization policy, strict ban on shelters, usage responsibilities, and Pedro Xavier contact", () => {
+  it("covers informative purpose in Belo Jardim, non-official character, LGPD authorization policy, strict ban on shelters, and usage responsibilities without personal names or contact blocks", () => {
     render(<TermosPage />);
 
     const main = screen.getByRole("main");
@@ -50,10 +50,11 @@ describe("Termos de Uso (/termos)", () => {
     expect(main).toHaveTextContent(/abrigos|casas de acolhimento/i);
     expect(main).toHaveTextContent(/proibi|sigilos/i);
 
-    expect(main).toHaveTextContent(/pedro xavier/i);
+    expect(main).not.toHaveTextContent(/pedro xavier/i);
+    expect(main).not.toHaveTextContent(/contato e responsável/i);
   });
 
-  it("renders inline EmergencyBar and footer links to / and /privacidade", () => {
+  it("renders inline EmergencyBar and footer without navigation buttons", () => {
     render(<TermosPage />);
 
     const emergency = screen.getByTestId("emergency-bar");
@@ -62,9 +63,6 @@ describe("Termos de Uso (/termos)", () => {
     );
 
     const footer = screen.getByRole("contentinfo");
-    expect(within(footer).getByRole("link", { name: /voltar ao mapa/i })).toHaveAttribute("href", "/");
-    expect(
-      within(footer).getByRole("link", { name: /política de privacidade/i }),
-    ).toHaveAttribute("href", "/privacidade");
+    expect(within(footer).queryAllByRole("link")).toHaveLength(0);
   });
 });

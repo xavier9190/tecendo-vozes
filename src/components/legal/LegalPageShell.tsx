@@ -13,7 +13,7 @@ export interface LegalPageShellProps {
 
 /**
  * Shared accessible layout for legal/transparency pages (/privacidade and /termos).
- * Keeps header navigation, inline emergency channels, and footer links consistent.
+ * Keeps header navigation, inline emergency channels, and minimal footer consistent.
  */
 export function LegalPageShell({
   title,
@@ -73,25 +73,10 @@ export function LegalPageShell({
       </main>
 
       <footer className="mt-auto border-t-2 border-tv-lavender bg-tv-cream-mint">
-        <div className="mx-auto flex max-w-4xl flex-col gap-4 px-4 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+        <div className="mx-auto flex max-w-4xl items-center justify-between px-4 py-5 sm:px-6">
           <p className="text-xs font-semibold text-tv-purple-dark">
             {PROJECT_INFO.name} — {PROJECT_INFO.subtitle} ({PROJECT_INFO.coverage})
           </p>
-
-          <nav aria-label="Links do rodapé" className="flex flex-wrap items-center gap-2">
-            <Link
-              href="/"
-              className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-xl border-2 border-tv-purple-deep bg-tv-cream-warm px-4 py-2 text-sm font-bold text-tv-purple-deep transition-colors hover:bg-tv-cream-butter"
-            >
-              Voltar ao mapa
-            </Link>
-            <Link
-              href={siblingLink.href}
-              className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-xl border-2 border-tv-purple-deep bg-tv-purple-deep px-4 py-2 text-sm font-bold text-tv-cream-mint transition-colors hover:bg-tv-purple-dark"
-            >
-              {siblingLink.label}
-            </Link>
-          </nav>
         </div>
       </footer>
     </div>

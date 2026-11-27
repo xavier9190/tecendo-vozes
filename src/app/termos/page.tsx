@@ -88,24 +88,6 @@ export default function TermosPage() {
           divulgação não autorizada ou finalidades ilícitas.
         </p>
       </section>
-
-      <section
-        aria-labelledby="termos-contato"
-        className="space-y-2 rounded-2xl border-2 border-tv-lavender bg-tv-cream-mint p-5 shadow-xs"
-      >
-        <h2
-          id="termos-contato"
-          className="text-lg font-extrabold text-tv-purple-deep sm:text-xl"
-        >
-          4. Contato e responsável pelo projeto
-        </h2>
-        <p className="text-sm leading-relaxed text-tv-purple-deep sm:text-base">
-          O responsável pela curadoria técnica e pelo atendimento LGPD do {PROJECT_INFO.name} é{" "}
-          <strong>{PROJECT_INFO.lgpdContactName}</strong> ({PROJECT_INFO.lgpdContactRole}).
-          Solicitações de correção, atualização cadastral ou revogação de autorização podem ser
-          encaminhadas a qualquer momento para remoção imediata do ponto no mapa.
-        </p>
-      </section>
     </LegalPageShell>
   );
 }

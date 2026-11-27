@@ -15,7 +15,7 @@ describe("Política de Privacidade (/privacidade)", () => {
     expect(h1).toHaveTextContent(/política de privacidade/i);
 
     const h2s = within(main).getAllByRole("heading", { level: 2 });
-    expect(h2s.length).toBeGreaterThanOrEqual(5);
+    expect(h2s.length).toBeGreaterThanOrEqual(4);
 
     const backLinks = screen.getAllByRole("link", { name: /voltar ao mapa/i });
     expect(backLinks.length).toBeGreaterThanOrEqual(1);
@@ -34,7 +34,7 @@ describe("Política de Privacidade (/privacidade)", () => {
     }
   });
 
-  it("covers all LGPD zero-tracking requirements, local geolocation, Vercel, youtube-nocookie, incognito guidance, and Pedro Xavier contact", () => {
+  it("covers all LGPD zero-tracking requirements, local geolocation, Vercel, youtube-nocookie, and incognito guidance without personal names or contact blocks", () => {
     render(<PrivacidadePage />);
 
     const main = screen.getByRole("main");
@@ -55,11 +55,11 @@ describe("Política de Privacidade (/privacidade)", () => {
     expect(main).toHaveTextContent(/navegação anônima|aba anônima|guia anônima/i);
     expect(main).toHaveTextContent(/compartilh/i);
 
-    expect(main).toHaveTextContent(/pedro xavier/i);
-    expect(main).toHaveTextContent(/remoção|atualização/i);
+    expect(main).not.toHaveTextContent(/pedro xavier/i);
+    expect(main).not.toHaveTextContent(/contato e responsável/i);
   });
 
-  it("renders inline EmergencyBar with permanent disclaimer, tel: links, and footer navigation", () => {
+  it("renders inline EmergencyBar with permanent disclaimer, tel: links, and footer without navigation buttons", () => {
     render(<PrivacidadePage />);
 
     const emergency = screen.getByTestId("emergency-bar");
@@ -74,10 +74,6 @@ describe("Política de Privacidade (/privacidade)", () => {
     }
 
     const footer = screen.getByRole("contentinfo");
-    expect(within(footer).getByRole("link", { name: /voltar ao mapa/i })).toHaveAttribute("href", "/");
-    expect(within(footer).getByRole("link", { name: /termos de uso/i })).toHaveAttribute(
-      "href",
-      "/termos",
-    );
+    expect(within(footer).queryAllByRole("link")).toHaveLength(0);
   });
 });
