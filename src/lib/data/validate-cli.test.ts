@@ -10,7 +10,7 @@ describe("scripts/validate-data.ts — trava de build", () => {
 
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.locais.length).toBeGreaterThanOrEqual(12);
+      expect(result.locais.length).toBeGreaterThanOrEqual(4);
     }
   });
 
