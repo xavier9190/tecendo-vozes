@@ -153,4 +153,46 @@ describe("PlacePreview", () => {
     ).not.toBeInTheDocument();
     expect(trigger).toHaveFocus();
   });
+
+  it("toggles mobile fullscreen expansion with upward transition via top expand button", () => {
+    render(
+      <PlacePreview
+        place={VERIFIED_PLACE}
+        onClose={vi.fn()}
+        onOpenDetails={vi.fn()}
+      />,
+    );
+
+    const preview = screen.getByRole("region", {
+      name: /pré-visualização de ubs centro/i,
+    });
+    const expandBtn = screen.getByTestId("place-preview-expand-toggle");
+
+    expect(expandBtn.className).toContain("md:hidden");
+    expect(expandBtn.className).toContain("min-h-11");
+    expect(expandBtn.className).toContain("top-0");
+    expect(expandBtn.className).toContain("-translate-y-1/2");
+    expect(expandBtn.textContent).toBe("");
+    expect(expandBtn.querySelector("svg")).toHaveAttribute("aria-hidden", "true");
+    expect(expandBtn).toHaveAttribute("aria-expanded", "false");
+    expect(preview.className).toContain("max-md:h-[48dvh]");
+    expect(preview.className).toContain("max-md:max-h-[48dvh]");
+    expect(preview.className).toContain("max-md:transition-[height,max-height,border-radius]");
+
+    fireEvent.click(expandBtn);
+    expect(expandBtn).toHaveAttribute("aria-expanded", "true");
+    expect(expandBtn.className).toContain("top-3");
+    expect(expandBtn.className).toContain("translate-y-0");
+    expect(preview.className).toContain("max-md:h-[100dvh]");
+    expect(preview.className).toContain("max-md:max-h-[100dvh]");
+    expect(preview.className).toContain("max-md:rounded-none");
+
+    fireEvent.click(expandBtn);
+    expect(expandBtn).toHaveAttribute("aria-expanded", "false");
+    expect(expandBtn.className).toContain("top-0");
+    expect(expandBtn.className).toContain("-translate-y-1/2");
+    expect(preview.className).toContain("max-md:h-[48dvh]");
+    expect(preview.className).toContain("max-md:max-h-[48dvh]");
+    expect(preview.className).toContain("max-md:rounded-t-2xl");
+  });
 });

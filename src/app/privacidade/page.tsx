@@ -130,31 +130,6 @@ export default function PrivacidadePage() {
           </li>
         </ul>
       </section>
-
-      <section
-        aria-labelledby="priv-responsavel-lgpd"
-        className="space-y-2 rounded-2xl border-2 border-tv-lavender bg-tv-cream-mint p-5 shadow-xs"
-      >
-        <h2
-          id="priv-responsavel-lgpd"
-          className="text-lg font-extrabold text-tv-purple-deep sm:text-xl"
-        >
-          5. Contato e responsável LGPD
-        </h2>
-        <p className="text-sm leading-relaxed text-tv-purple-deep sm:text-base">
-          O responsável pelo tratamento de informações dos espaços cadastrados e pelo atendimento
-          LGPD do projeto {PROJECT_INFO.name} é <strong>{PROJECT_INFO.lgpdContactName}</strong> (
-          {PROJECT_INFO.lgpdContactRole}).
-        </p>
-        <p className="text-sm leading-relaxed text-tv-purple-dark sm:text-base">
-          Todos os locais publicados passam por autorização prévia documentada. Caso você represente
-          um espaço, iniciativa ou serviço listado e deseje solicitar{" "}
-          <strong>atualização, correção ou remoção imediata</strong> dos dados publicados no mapa,
-          entre em contato diretamente com {PROJECT_INFO.lgpdContactName} pelo canal institucional
-          do projeto em Belo Jardim – PE ou pela solicitação formal vinculada ao termo de
-          autorização.
-        </p>
-      </section>
     </LegalPageShell>
   );
 }

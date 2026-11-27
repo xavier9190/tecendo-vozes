@@ -1,98 +1,34 @@
 [
   {
-    "localId": "ubs-centro-saude-mulher",
+    "localId": "ceam-belo-jardim",
     "status": "ativa",
-    "responsavelNome": "Coordenação de Atenção Básica de Belo Jardim",
-    "dataConsentimento": "2026-10-18",
+    "responsavelNome": "Secretaria de Políticas Públicas para a Mulher de Belo Jardim",
+    "dataConsentimento": "2026-11-27",
     "termosVersao": "1.0",
-    "escopoPublicacao": "nome, categoria, endereco, coordenadas, horarioFuncionamento, contatos e midia"
-  },
-  {
-    "localId": "policlinica-maria-alice-sede",
-    "status": "ativa",
-    "responsavelNome": "Diretoria da Policlínica Municipal",
-    "dataConsentimento": "2026-10-20",
-    "termosVersao": "1.0",
-    "escopoPublicacao": "nome, categoria, endereco, coordenadas, horarioFuncionamento e telefone"
-  },
-  {
-    "localId": "cram-tecendo-cuidado",
-    "status": "ativa",
-    "responsavelNome": "Coordenação Técnica do CRAM Belo Jardim",
-    "dataConsentimento": "2026-11-02",
-    "termosVersao": "1.0",
-    "escopoPublicacao": "nome, categoria, endereco, coordenadas, horarioFuncionamento, contatos e midia"
-  },
-  {
-    "localId": "nucleo-orientacao-juridica-cohab",
-    "status": "ativa",
-    "responsavelNome": "Helena Cristina Barbosa",
-    "dataConsentimento": "2026-10-12",
-    "termosVersao": "1.0",
-    "escopoPublicacao": "nome, categoria, endereco, coordenadas e telefone"
+    "escopoPublicacao": "nome, categoria, descricao, endereco, coordenadas e telefone"
   },
   {
     "localId": "cras-serra-do-vento",
     "status": "ativa",
     "responsavelNome": "Coordenação do CRAS Serra do Vento",
-    "dataConsentimento": "2026-10-25",
+    "dataConsentimento": "2026-11-27",
     "termosVersao": "1.0",
-    "escopoPublicacao": "nome, categoria, endereco, coordenadas, horarioFuncionamento e telefone"
+    "escopoPublicacao": "nome, categoria, descricao, endereco e coordenadas"
   },
   {
     "localId": "creas-regional-belo-jardim",
     "status": "ativa",
     "responsavelNome": "Coordenação do CREAS Belo Jardim",
-    "dataConsentimento": "2026-11-01",
+    "dataConsentimento": "2026-11-27",
     "termosVersao": "1.0",
-    "escopoPublicacao": "nome, categoria, endereco, coordenadas, horarioFuncionamento, telefone e midia"
+    "escopoPublicacao": "nome, categoria, descricao, endereco e coordenadas"
   },
   {
-    "localId": "casa-das-artesas-agua-fria",
+    "localId": "vaca-profana-centro-cultural",
     "status": "ativa",
-    "responsavelNome": "Maria José Bezerra",
-    "dataConsentimento": "2026-10-30",
+    "responsavelNome": "Coordenação do Centro Cultural Vaca Profana",
+    "dataConsentimento": "2026-11-27",
     "termosVersao": "1.0",
-    "escopoPublicacao": "nome, categoria, endereco, coordenadas, horarioFuncionamento, contatos e midia"
-  },
-  {
-    "localId": "atelier-renda-xucuru",
-    "status": "ativa",
-    "responsavelNome": "Severina Lúcia Ferreira",
-    "dataConsentimento": "2026-10-22",
-    "termosVersao": "1.0",
-    "escopoPublicacao": "nome, categoria, endereco, coordenadas e whatsapp"
-  },
-  {
-    "localId": "coletivo-cultural-serra-encantada",
-    "status": "ativa",
-    "responsavelNome": "Amanda Vitória dos Santos",
-    "dataConsentimento": "2026-11-04",
-    "termosVersao": "1.0",
-    "escopoPublicacao": "nome, categoria, endereco, coordenadas, horarioFuncionamento, instagram e midia"
-  },
-  {
-    "localId": "espaco-leitura-tecer",
-    "status": "ativa",
-    "responsavelNome": "Clara Beatriz Monteiro",
-    "dataConsentimento": "2026-10-27",
-    "termosVersao": "1.0",
-    "escopoPublicacao": "nome, categoria, endereco, coordenadas, horarioFuncionamento e instagram"
-  },
-  {
-    "localId": "cooperativa-sabores-agua-fria",
-    "status": "ativa",
-    "responsavelNome": "Francisca de Assis Lima",
-    "dataConsentimento": "2026-10-28",
-    "termosVersao": "1.0",
-    "escopoPublicacao": "nome, categoria, endereco, coordenadas, horarioFuncionamento, contatos e midia"
-  },
-  {
-    "localId": "rede-empreendedoras-xucuru",
-    "status": "ativa",
-    "responsavelNome": "Edna Maria Cavalcanti",
-    "dataConsentimento": "2026-10-19",
-    "termosVersao": "1.0",
-    "escopoPublicacao": "nome, categoria, endereco, coordenadas e whatsapp"
+    "escopoPublicacao": "nome, categoria, descricao, endereco, coordenadas e midia"
   }
 ]

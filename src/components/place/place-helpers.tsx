@@ -3,11 +3,11 @@ import type { LngLat, Local } from "@/lib/data/schema";
 import { getCategoryToken } from "@/lib/theme/categories";
 
 /**
- * Builds an external OpenStreetMap directions URL from `[lng, lat]` coordinates.
+ * Builds an external Google Maps directions URL from `[lng, lat]` coordinates.
  */
-export function buildOsmDirectionsUrl(coordinates: LngLat): string {
+export function buildGoogleMapsDirectionsUrl(coordinates: LngLat): string {
   const [lng, lat] = coordinates;
-  return `https://www.openstreetmap.org/directions?to=${encodeURIComponent(`${lat},${lng}`)}`;
+  return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(`${lat},${lng}`)}`;
 }
 
 /**

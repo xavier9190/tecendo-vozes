@@ -3,33 +3,29 @@ import { CATEGORY_IDS } from "../theme/categories";
 import { BELO_JARDIM_DISTRICTS } from "./schema";
 import { getLocalById, getLocais, getLocaisGeoJson } from "./locais";
 
-describe("dataset seed de Belo Jardim e acessores (locais.ts)", () => {
-  it("retorna ao menos 12 locais cobrindo todas as 6 categorias e 4 distritos", () => {
+describe("dataset curado de Belo Jardim e acessores (locais.ts)", () => {
+  it("retorna os locais reais curados com categorias e distritos válidos", () => {
     const locais = getLocais();
 
-    expect(locais.length).toBeGreaterThanOrEqual(12);
+    expect(locais.length).toBeGreaterThanOrEqual(4);
 
-    const categoriasPresentes = new Set(locais.map((l) => l.categoria));
-    for (const categoria of CATEGORY_IDS) {
-      expect(categoriasPresentes.has(categoria)).toBe(true);
-    }
+    const ids = new Set(locais.map((l) => l.id));
+    expect(ids.has("vaca-profana-centro-cultural")).toBe(true);
+    expect(ids.has("ceam-belo-jardim")).toBe(true);
+    expect(ids.has("cras-serra-do-vento")).toBe(true);
+    expect(ids.has("creas-regional-belo-jardim")).toBe(true);
 
-    const distritosPresentes = new Set(locais.map((l) => l.distrito));
-    for (const distrito of BELO_JARDIM_DISTRICTS) {
-      expect(distritosPresentes.has(distrito)).toBe(true);
+    for (const local of locais) {
+      expect(CATEGORY_IDS).toContain(local.categoria);
+      expect(BELO_JARDIM_DISTRICTS).toContain(local.distrito);
     }
   });
 
-  it("inclui locais completos com mídia/horário e ao menos 2 locais omitindo campos opcionais para fallback", () => {
+  it("inclui local com vídeo e locais omitindo campos opcionais para fallback", () => {
     const locais = getLocais();
 
-    const comMidiaCompleta = locais.filter(
-      (l) =>
-        Boolean(l.horarioFuncionamento) &&
-        Boolean(l.midia?.fotos && l.midia.fotos.length > 0) &&
-        Boolean(l.midia?.youtubeVideoId),
-    );
-    expect(comMidiaCompleta.length).toBeGreaterThanOrEqual(1);
+    const comVideo = locais.filter((l) => Boolean(l.midia?.youtubeVideoId));
+    expect(comVideo.length).toBeGreaterThanOrEqual(1);
 
     const semCamposOpcionais = locais.filter(
       (l) =>

@@ -97,7 +97,7 @@ describe("PlaceDetailsModal", () => {
     const directionsLink = screen.getByRole("link", { name: /como chegar/i });
     expect(directionsLink).toHaveAttribute(
       "href",
-      "https://www.openstreetmap.org/directions?to=-8.3852%2C-36.3554",
+      "https://www.google.com/maps/dir/?api=1&destination=-8.3852%2C-36.3554",
     );
     expect(directionsLink).toHaveAttribute("target", "_blank");
     expect(directionsLink).toHaveAttribute("rel", "noopener noreferrer");
@@ -203,5 +203,49 @@ describe("PlaceDetailsModal", () => {
     } finally {
       window.removeEventListener("keydown", parentEscapeListener);
     }
+  });
+
+  it("renders editorial layout with top video banner, side-by-side grid, and bottom logo strip in order", () => {
+    const { rerender } = render(
+      <PlaceDetailsModal place={FULL_PLACE} isOpen={true} onClose={vi.fn()} />,
+    );
+
+    const dialog = screen.getByRole("dialog");
+    expect(dialog.className).toContain("h-dvh");
+    expect(dialog.className).toContain("w-full");
+    expect(dialog.className).toContain("rounded-none");
+    expect(dialog.className).toContain("md:w-[60vw]");
+    expect(dialog.className).toContain("md:rounded-2xl");
+
+    const videoSection = screen.getByTestId("place-details-video-section");
+    const editorialGrid = screen.getByTestId("place-details-editorial-grid");
+    const logoStrip = screen.getByTestId("place-details-logo-strip");
+
+    expect(
+      Boolean(
+        videoSection.compareDocumentPosition(editorialGrid) &
+          Node.DOCUMENT_POSITION_FOLLOWING,
+      ),
+    ).toBe(true);
+    expect(
+      Boolean(
+        editorialGrid.compareDocumentPosition(logoStrip) &
+          Node.DOCUMENT_POSITION_FOLLOWING,
+      ),
+    ).toBe(true);
+    expect(logoStrip).toHaveTextContent(/tecendo vozes/i);
+    expect(logoStrip).toHaveTextContent(/régua de logos/i);
+
+    // Minimal place keeps top video placeholder, editorial grid, and logo strip without iframe or img
+    rerender(
+      <PlaceDetailsModal place={MINIMAL_PLACE} isOpen={true} onClose={vi.fn()} />,
+    );
+    expect(screen.getByTestId("place-details-video-section")).toHaveTextContent(
+      /vídeo de apresentação/i,
+    );
+    expect(screen.getByTestId("place-details-editorial-grid")).toBeInTheDocument();
+    expect(screen.getByTestId("place-details-logo-strip")).toBeInTheDocument();
+    expect(document.querySelector("iframe")).toBeNull();
+    expect(screen.queryByRole("img")).not.toBeInTheDocument();
   });
 });
