@@ -18,8 +18,8 @@ import { PROJECT_INFO } from "@/lib/project-info";
 import { getCategoryToken } from "@/lib/theme/categories";
 import {
   PlaceBadges,
+  buildGoogleMapsDirectionsUrl,
   buildInstagramUrl,
-  buildOsmDirectionsUrl,
   buildTelHref,
   buildWhatsAppUrl,
 } from "./place-helpers";
@@ -110,7 +110,7 @@ export function PlaceDetailsModal({
   const secondaryPhoto =
     fotos.length > 1 ? fotos[(activePhotoIndex + 1) % fotos.length] : null;
   const youtubeVideoId = place.midia?.youtubeVideoId;
-  const directionsUrl = buildOsmDirectionsUrl(place.coordinates);
+  const directionsUrl = buildGoogleMapsDirectionsUrl(place.coordinates);
   const hasAnyContact = Boolean(
     place.telefone || place.whatsapp || place.instagram || place.site,
   );

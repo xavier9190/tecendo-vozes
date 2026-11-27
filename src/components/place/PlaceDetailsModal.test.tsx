@@ -97,7 +97,7 @@ describe("PlaceDetailsModal", () => {
     const directionsLink = screen.getByRole("link", { name: /como chegar/i });
     expect(directionsLink).toHaveAttribute(
       "href",
-      "https://www.openstreetmap.org/directions?to=-8.3852%2C-36.3554",
+      "https://www.google.com/maps/dir/?api=1&destination=-8.3852%2C-36.3554",
     );
     expect(directionsLink).toHaveAttribute("target", "_blank");
     expect(directionsLink).toHaveAttribute("rel", "noopener noreferrer");
