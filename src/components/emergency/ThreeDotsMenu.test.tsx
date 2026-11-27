@@ -88,10 +88,33 @@ describe("ThreeDotsMenu", () => {
     expect(backdrop.className).toContain("justify-center");
 
     const dialog = screen.getByRole("dialog");
+    expect(dialog.className).toContain("h-dvh");
+    expect(dialog.className).toContain("w-full");
+    expect(dialog.className).toContain("rounded-none");
+    expect(dialog.className).toContain("md:w-[60vw]");
+    expect(dialog.className).toContain("md:rounded-2xl");
+
+    const heroBanner = screen.getByTestId("about-hero-banner");
+    const editorialGrid = screen.getByTestId("about-editorial-grid");
+    const logoStrip = screen.getByTestId("about-logo-strip");
+    expect(
+      Boolean(
+        heroBanner.compareDocumentPosition(editorialGrid) &
+          Node.DOCUMENT_POSITION_FOLLOWING,
+      ),
+    ).toBe(true);
+    expect(
+      Boolean(
+        editorialGrid.compareDocumentPosition(logoStrip) &
+          Node.DOCUMENT_POSITION_FOLLOWING,
+      ),
+    ).toBe(true);
+
     expect(dialog).toHaveTextContent(/tecendo vozes/i);
     expect(dialog).toHaveTextContent(/belo jardim/i);
-    expect(dialog).toHaveTextContent(/pedro xavier/i);
+    expect(dialog).not.toHaveTextContent(/pedro xavier/i);
     expect(dialog).toHaveTextContent(/zero cookies/i);
+    expect(logoStrip).toHaveTextContent(/régua de logos/i);
 
     expect(screen.getByRole("link", { name: /política de privacidade/i })).toHaveAttribute(
       "href",
