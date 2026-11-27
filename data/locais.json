@@ -226,5 +226,20 @@
     "tags": ["feira-livre", "costura", "economia-local"],
     "verificado": true,
     "dataVerificacao": "2026-10-19"
+  },
+  {
+    "id": "vaca-profana-centro-cultural",
+    "nome": "Vaca Profana — Centro Cultural",
+    "categoria": "arte-cultura",
+    "descricaoCurta": "Espaço de promoção da cultura popular, com foco no apoio, fortalecimento e cuidado às mulheres e ao meio ambiente.",
+    "descricaoCompleta": "Centro cultural dedicado à promoção da cultura popular em Belo Jardim, atuando também no apoio, fortalecimento e cuidado às mulheres, ao meio ambiente e a questões comunitárias.",
+    "distrito": "Sede",
+    "endereco": "Sede, Belo Jardim - PE",
+    "coordinates": [-36.414723, -8.330616],
+    "tags": ["cultura-popular", "centro-cultural", "mulheres", "meio-ambiente"],
+    "verificado": false,
+    "midia": {
+      "youtubeVideoId": "g5MLMGfm0Qg"
+    }
   }
 ]

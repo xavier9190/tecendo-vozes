@@ -94,5 +94,13 @@
     "dataConsentimento": "2026-10-19",
     "termosVersao": "1.0",
     "escopoPublicacao": "nome, categoria, endereco, coordenadas e whatsapp"
+  },
+  {
+    "localId": "vaca-profana-centro-cultural",
+    "status": "ativa",
+    "responsavelNome": "Coordenação do Centro Cultural Vaca Profana",
+    "dataConsentimento": "2026-11-27",
+    "termosVersao": "1.0",
+    "escopoPublicacao": "nome, categoria, descricao, endereco, coordenadas e midia"
   }
 ]
